@@ -9,6 +9,7 @@ import {
   Search,
   X,
 } from 'lucide-react';
+import { FALLBACK_PHOTO_URL, handleImageError } from '../utils/imageFallback';
 
 export const ProgramsPage: React.FC = () => {
   const { programs, setActivePage, selectedProgramId } = useData();
@@ -123,10 +124,13 @@ export const ProgramsPage: React.FC = () => {
           >
             <div className="h-64 relative bg-[#120B08]">
               <img
-                src={activeDetailProgram.image}
+                src={activeDetailProgram.image || FALLBACK_PHOTO_URL}
                 alt={activeDetailProgram.title}
+                loading="eager"
+                decoding="async"
                 className="w-full h-full object-cover object-top"
                 referrerPolicy="no-referrer"
+                onError={(e) => handleImageError(e, FALLBACK_PHOTO_URL)}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#1D120D] via-[#120B08]/35 to-transparent" />
               <span className="absolute bottom-4 left-6 text-xs font-bold uppercase tracking-widest text-[#F2C14E]">
@@ -226,10 +230,13 @@ export const ProgramsPage: React.FC = () => {
               >
                 <div className="h-52 overflow-hidden bg-[#281912]">
                   <img
-                    src={prog.image}
+                    src={prog.image || FALLBACK_PHOTO_URL}
                     alt={prog.title}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
                     referrerPolicy="no-referrer"
+                    onError={(e) => handleImageError(e, FALLBACK_PHOTO_URL)}
                   />
                 </div>
 

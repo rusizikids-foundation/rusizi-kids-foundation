@@ -10,6 +10,7 @@ import {
   RotateCcw,
   ChevronUp,
 } from 'lucide-react';
+import { FALLBACK_LOGO_URL, FALLBACK_PHOTO_URL, handleImageError } from '../utils/imageFallback';
 
 export type ImageFrameShape = 'circle' | 'square' | 'landscape';
 
@@ -351,11 +352,11 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
                 <img
                   src={value}
                   alt="Preview"
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover object-top"
                   referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src = '/logo.png';
-                  }}
+                  onError={(e) => handleImageError(e, FALLBACK_LOGO_URL)}
                 />
               </div>
               <div className="min-w-0 text-[11px]">
@@ -424,6 +425,8 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
                   src={sourceUrl}
                   alt="Framing preview"
                   draggable={false}
+                  decoding="async"
+                  onError={(e) => handleImageError(e, FALLBACK_PHOTO_URL)}
                   onLoad={(e) => {
                     const el = e.currentTarget;
                     if (el.naturalWidth && el.naturalHeight) {

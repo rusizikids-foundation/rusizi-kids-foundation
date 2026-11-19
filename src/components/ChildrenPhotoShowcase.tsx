@@ -8,6 +8,7 @@ import {
   Edit3,
 } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import { FALLBACK_PHOTO_URL, handleImageError } from '../utils/imageFallback';
 
 interface ChildrenPhotoShowcaseProps {
   variant?: 'hero' | 'embedded';
@@ -103,17 +104,14 @@ export const ChildrenPhotoShowcase: React.FC<ChildrenPhotoShowcaseProps> = ({
             }`}
           >
             <img
-              src={slide.image || '/assets/aistudio/New_Recording_69_2dab5d6c.jpeg'}
+              src={slide.image || FALLBACK_PHOTO_URL}
               alt={slide.title}
+              loading={isHero ? 'eager' : 'lazy'}
+              decoding="async"
+              fetchPriority={isHero && index === currentIndex ? 'high' : 'low'}
               className={`block w-full h-full object-cover object-center ${kbClass}`}
               referrerPolicy="no-referrer"
-              onError={(e) => {
-                const img = e.currentTarget;
-                if (!img.dataset.fallbackApplied) {
-                  img.dataset.fallbackApplied = '1';
-                  img.src = '/assets/aistudio/New_Recording_69_2dab5d6c.jpeg';
-                }
-              }}
+              onError={(e) => handleImageError(e, FALLBACK_PHOTO_URL)}
             />
             {/* Balanced Dark Chocolate Contrast Gradient Overlays */}
             <div

@@ -16,6 +16,11 @@ import {
 import { WhatsAppIcon } from '../components/SocialIcons';
 import { DonorsPartnersMarquee } from '../components/DonorsPartnersMarquee';
 import { StaffMemberCard } from '../components/StaffMemberCard';
+import {
+  FALLBACK_MENTORSHIP_URL,
+  FALLBACK_PHOTO_URL,
+  handleImageError,
+} from '../utils/imageFallback';
 
 export const HomePage: React.FC = () => {
   const {
@@ -198,10 +203,13 @@ export const HomePage: React.FC = () => {
             >
               <div className="h-40 overflow-hidden bg-[#281912]">
                 <img
-                  src={prog.image}
+                  src={prog.image || FALLBACK_PHOTO_URL}
                   alt={prog.title}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
                   referrerPolicy="no-referrer"
+                  onError={(e) => handleImageError(e, FALLBACK_PHOTO_URL)}
                 />
               </div>
 
@@ -238,10 +246,13 @@ export const HomePage: React.FC = () => {
             <div className="lg:col-span-6">
               <div className="h-full min-h-[320px] sm:min-h-[400px] rounded-2xl overflow-hidden border border-[#D9A62E]/35 shadow-2xl bg-[#120B08]">
                 <img
-                  src={settings.aboutHeroImage || '/assets/aistudio/New_Recording_78_59ee1a8e.jpeg'}
+                  src={settings.aboutHeroImage || FALLBACK_MENTORSHIP_URL}
                   alt="Mentorship Session at Rusizi Kids Foundation"
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover object-top"
                   referrerPolicy="no-referrer"
+                  onError={(e) => handleImageError(e, FALLBACK_MENTORSHIP_URL)}
                 />
               </div>
             </div>
@@ -347,10 +358,13 @@ export const HomePage: React.FC = () => {
             >
               <div className="h-56 overflow-hidden bg-[#281912]">
                 <img
-                  src={child.photo}
+                  src={child.photo || FALLBACK_PHOTO_URL}
                   alt={child.publicName}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
                   referrerPolicy="no-referrer"
+                  onError={(e) => handleImageError(e, FALLBACK_PHOTO_URL)}
                 />
               </div>
 
@@ -425,10 +439,13 @@ export const HomePage: React.FC = () => {
               >
                 <div className="h-48 overflow-hidden bg-[#120B08]">
                   <img
-                    src={item.image}
+                    src={item.image || FALLBACK_PHOTO_URL}
                     alt={item.title}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
                     referrerPolicy="no-referrer"
+                    onError={(e) => handleImageError(e, FALLBACK_PHOTO_URL)}
                   />
                 </div>
 

@@ -11,6 +11,7 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
+import { FALLBACK_PHOTO_URL, handleImageError } from '../utils/imageFallback';
 
 export const GalleryPage: React.FC = () => {
   const { gallery } = useData();
@@ -142,10 +143,13 @@ export const GalleryPage: React.FC = () => {
           >
             <div className="relative bg-[#120B08] flex items-center justify-center min-h-[320px] max-h-[75vh]">
               <img
-                src={lightboxItem.url}
+                src={lightboxItem.url || FALLBACK_PHOTO_URL}
                 alt={lightboxItem.title}
+                loading="eager"
+                decoding="async"
                 className="max-h-[75vh] w-auto object-contain mx-auto"
                 referrerPolicy="no-referrer"
+                onError={(e) => handleImageError(e, FALLBACK_PHOTO_URL)}
               />
 
               {filteredItems.length > 1 && (
@@ -225,10 +229,13 @@ export const GalleryPage: React.FC = () => {
               >
                 <div className="h-64 overflow-hidden relative bg-[#281912]">
                   <img
-                    src={item.url}
+                    src={item.url || FALLBACK_PHOTO_URL}
                     alt={item.title}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
                     referrerPolicy="no-referrer"
+                    onError={(e) => handleImageError(e, FALLBACK_PHOTO_URL)}
                   />
                   <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity bg-[#120B08]/85 text-[#F2C14E] p-2 rounded-lg border border-[#D9A62E]/45">
                     <Maximize2 className="w-4 h-4" />

@@ -12,6 +12,7 @@ import {
   ShowcaseSlide,
 } from '../types';
 import { ImageUploadInput } from '../components/ImageUploadInput';
+import { FALLBACK_LOGO_URL, FALLBACK_PHOTO_URL, handleImageError } from '../utils/imageFallback';
 import {
   Shield,
   Users,
@@ -321,15 +322,11 @@ export const AdminDashboard: React.FC = () => {
               <img
                 src={settings.primaryLogo || '/logo.png'}
                 alt="RKF Monogram Logo"
+                loading="eager"
+                decoding="async"
                 className="w-full h-full object-contain rounded-full"
                 referrerPolicy="no-referrer"
-                onError={(e) => {
-                  const img = e.currentTarget;
-                  if (!img.dataset.fallbackApplied) {
-                    img.dataset.fallbackApplied = '1';
-                    img.src = '/logo.png';
-                  }
-                }}
+                onError={(e) => handleImageError(e, FALLBACK_LOGO_URL)}
               />
             </div>
             <div>
@@ -1137,10 +1134,13 @@ export const AdminDashboard: React.FC = () => {
                       <div key={slide.id} className={`${INNER_CARD_CLASS} flex gap-4 items-start`}>
                         <div className="w-24 h-24 rounded-lg overflow-hidden shrink-0 border border-[#D9A62E]/30 bg-[#120B08]">
                           <img
-                            src={slide.image}
+                            src={slide.image || FALLBACK_PHOTO_URL}
                             alt={slide.title}
+                            loading="lazy"
+                            decoding="async"
                             className="w-full h-full object-cover object-top"
                             referrerPolicy="no-referrer"
+                            onError={(e) => handleImageError(e, FALLBACK_PHOTO_URL)}
                           />
                         </div>
                         <div className="flex-1 min-w-0 space-y-1">
@@ -1593,10 +1593,13 @@ export const AdminDashboard: React.FC = () => {
                     <div key={prog.id} className={`${INNER_CARD_CLASS} flex gap-4 items-start`}>
                       <div className="w-24 h-24 rounded-lg overflow-hidden shrink-0 border border-[#D9A62E]/30 bg-[#120B08]">
                         <img
-                          src={prog.image}
+                          src={prog.image || FALLBACK_PHOTO_URL}
                           alt={prog.title}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover object-top"
                           referrerPolicy="no-referrer"
+                          onError={(e) => handleImageError(e, FALLBACK_PHOTO_URL)}
                         />
                       </div>
                       <div className="flex-1 min-w-0 space-y-1">
@@ -1661,10 +1664,13 @@ export const AdminDashboard: React.FC = () => {
                     <div key={child.id} className={`${INNER_CARD_CLASS} flex gap-4 items-start`}>
                       <div className="w-20 h-20 rounded-lg overflow-hidden shrink-0 border border-[#D9A62E]/35 bg-[#120B08]">
                         <img
-                          src={child.photo}
+                          src={child.photo || FALLBACK_PHOTO_URL}
                           alt={child.publicName}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover object-top"
                           referrerPolicy="no-referrer"
+                          onError={(e) => handleImageError(e, FALLBACK_PHOTO_URL)}
                         />
                       </div>
                       <div className="flex-1 min-w-0 space-y-1">
@@ -1733,9 +1739,13 @@ export const AdminDashboard: React.FC = () => {
                       <div className="flex gap-4">
                         <div className="w-16 h-16 rounded-lg overflow-hidden shrink-0 bg-[#120B08] border border-[#D9A62E]/30">
                           <img
-                            src={ann.image}
+                            src={ann.image || FALLBACK_PHOTO_URL}
                             alt={ann.title}
+                            loading="lazy"
+                            decoding="async"
                             className="w-full h-full object-cover object-top"
+                            referrerPolicy="no-referrer"
+                            onError={(e) => handleImageError(e, FALLBACK_PHOTO_URL)}
                           />
                         </div>
                         <div>
@@ -1989,8 +1999,11 @@ export const AdminDashboard: React.FC = () => {
                                 <img
                                   src={imgSrc}
                                   alt={d.name}
+                                  loading="lazy"
+                                  decoding="async"
                                   className="w-full h-full object-cover object-top"
                                   referrerPolicy="no-referrer"
+                                  onError={(e) => handleImageError(e, FALLBACK_LOGO_URL)}
                                 />
                               ) : (
                                 <HeartHandshake className="w-6 h-6 text-[#F2C14E]" />
@@ -2078,8 +2091,11 @@ export const AdminDashboard: React.FC = () => {
                                 <img
                                   src={imgSrc}
                                   alt={p.organizationName}
+                                  loading="lazy"
+                                  decoding="async"
                                   className="w-full h-full object-cover object-top"
                                   referrerPolicy="no-referrer"
+                                  onError={(e) => handleImageError(e, FALLBACK_LOGO_URL)}
                                 />
                               ) : (
                                 <HeartHandshake className="w-6 h-6 text-[#F2C14E]" />
@@ -2164,9 +2180,13 @@ export const AdminDashboard: React.FC = () => {
                     >
                       <div className="h-32 bg-[#120B08]">
                         <img
-                          src={item.url}
+                          src={item.url || FALLBACK_PHOTO_URL}
                           alt={item.title}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover object-top"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => handleImageError(e, FALLBACK_PHOTO_URL)}
                         />
                       </div>
                       <div className="p-2.5">
@@ -2223,9 +2243,13 @@ export const AdminDashboard: React.FC = () => {
                     <div key={lead.id} className={`${INNER_CARD_CLASS} flex items-center gap-4`}>
                       <div className="w-20 h-20 rounded-full overflow-hidden bg-[#120B08] border-2 border-[#D9A62E] shrink-0 shadow-md">
                         <img
-                          src={lead.photo}
+                          src={lead.photo || FALLBACK_PHOTO_URL}
                           alt={lead.name}
+                          loading="lazy"
+                          decoding="async"
                           className="w-full h-full object-cover object-top"
+                          referrerPolicy="no-referrer"
+                          onError={(e) => handleImageError(e, FALLBACK_PHOTO_URL)}
                         />
                       </div>
                       <div className="flex-1 min-w-0">

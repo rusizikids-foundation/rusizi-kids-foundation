@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { PageId } from '../types';
 import { Menu, X, ChevronRight, Settings, LogOut, Mail } from 'lucide-react';
+import { FALLBACK_LOGO_URL, handleImageError } from '../utils/imageFallback';
 
 export const Navbar: React.FC = () => {
   const {
@@ -98,15 +99,12 @@ export const Navbar: React.FC = () => {
               <img
                 src={settings.primaryLogo || '/logo.png'}
                 alt="Rusizi Kids Foundation Circular Gold Monogram Logo"
+                loading="eager"
+                decoding="async"
+                fetchPriority="high"
                 className="w-full h-full object-contain rounded-full"
                 referrerPolicy="no-referrer"
-                onError={(e) => {
-                  const img = e.currentTarget;
-                  if (!img.dataset.fallbackApplied) {
-                    img.dataset.fallbackApplied = '1';
-                    img.src = '/logo.png';
-                  }
-                }}
+                onError={(e) => handleImageError(e, FALLBACK_LOGO_URL)}
               />
             </div>
             <div className="min-w-0">

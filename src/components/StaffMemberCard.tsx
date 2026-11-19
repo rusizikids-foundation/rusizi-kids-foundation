@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Award, X, Mail } from 'lucide-react';
 import { LeadershipMember } from '../types';
+import { FALLBACK_PHOTO_URL, handleImageError } from '../utils/imageFallback';
 
 interface StaffMemberCardProps {
   member: LeadershipMember;
@@ -22,10 +23,13 @@ export const StaffMemberCard: React.FC<StaffMemberCardProps> = ({ member }) => {
         <div className="relative flex flex-col items-center">
           <div className="w-28 h-28 rounded-full overflow-hidden border-2 border-[#D9A62E] ring-4 ring-[#D9A62E]/15 bg-[#120B08] shadow-[0_0_24px_rgba(217,166,46,0.22)] shrink-0 group-hover:scale-105 transition-transform duration-300">
             <img
-              src={member.photo}
+              src={member.photo || FALLBACK_PHOTO_URL}
               alt={member.name}
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-cover object-top"
               referrerPolicy="no-referrer"
+              onError={(e) => handleImageError(e, FALLBACK_PHOTO_URL)}
             />
           </div>
 
@@ -73,10 +77,13 @@ export const StaffMemberCard: React.FC<StaffMemberCardProps> = ({ member }) => {
 
             <div className="w-28 h-28 rounded-full overflow-hidden border-2 border-[#D9A62E] ring-4 ring-[#D9A62E]/20 mx-auto bg-[#120B08]">
               <img
-                src={member.photo}
+                src={member.photo || FALLBACK_PHOTO_URL}
                 alt={member.name}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover object-top"
                 referrerPolicy="no-referrer"
+                onError={(e) => handleImageError(e, FALLBACK_PHOTO_URL)}
               />
             </div>
 

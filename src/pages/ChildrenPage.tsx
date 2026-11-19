@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { ShieldCheck, CheckCircle2, Lock, Search, X } from 'lucide-react';
+import { FALLBACK_PHOTO_URL, handleImageError } from '../utils/imageFallback';
 
 export const ChildrenPage: React.FC = () => {
   const { children, setActivePage } = useData();
@@ -134,10 +135,13 @@ export const ChildrenPage: React.FC = () => {
               >
                 <div className="h-64 overflow-hidden relative bg-[#281912]">
                   <img
-                    src={child.photo}
+                    src={child.photo || FALLBACK_PHOTO_URL}
                     alt={child.publicName}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-300"
                     referrerPolicy="no-referrer"
+                    onError={(e) => handleImageError(e, FALLBACK_PHOTO_URL)}
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-[#120B08]/90 via-transparent to-transparent" />
                   <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between text-[#F9F5F0]">

@@ -33,6 +33,12 @@ import {
   publishSiteDataToGitHub,
   SiteDataPayload,
 } from '../utils/cloudSync';
+import {
+  FALLBACK_LOGO_URL,
+  FALLBACK_MENTORSHIP_URL,
+  FALLBACK_PHOTO_URL,
+  sanitizeImageUrl,
+} from '../utils/imageFallback';
 
 interface Toast {
   id: string;
@@ -190,17 +196,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const normalizeSettings = (raw?: Partial<WebsiteSettings>): WebsiteSettings => {
     const merged: WebsiteSettings = { ...initialSettings, ...(raw || {}) };
-    if (
-      !merged.primaryLogo ||
-      merged.primaryLogo.includes('RKF_circle_icon') ||
-      merged.primaryLogo.includes('RUSIZI_FOUNDATION_afe2877a')
-    ) {
-      merged.primaryLogo = '/logo.png';
-      merged.emblemLogo = '/logo.png';
-    }
-    if (!merged.emblemLogo) {
-      merged.emblemLogo = merged.primaryLogo || '/logo.png';
-    }
+    merged.primaryLogo = sanitizeImageUrl(merged.primaryLogo, FALLBACK_LOGO_URL);
+    merged.emblemLogo = sanitizeImageUrl(
+      merged.emblemLogo || merged.primaryLogo,
+      merged.primaryLogo || FALLBACK_LOGO_URL
+    );
+    merged.heroImage = sanitizeImageUrl(
+      merged.heroImage,
+      initialSettings.heroImage || FALLBACK_PHOTO_URL
+    );
+    merged.aboutHeroImage = sanitizeImageUrl(
+      merged.aboutHeroImage,
+      initialSettings.aboutHeroImage || FALLBACK_MENTORSHIP_URL
+    );
     return merged;
   };
 
@@ -266,23 +274,113 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return merged;
   });
 
+  const normalizeSlides = (items: ShowcaseSlide[]): ShowcaseSlide[] =>
+    items.map((slide, idx) => {
+      const seed =
+        initialShowcaseSlides.find((item) => item.id === slide.id) ||
+        initialShowcaseSlides[idx % initialShowcaseSlides.length];
+      return {
+        ...seed,
+        ...slide,
+        image: sanitizeImageUrl(slide.image, seed.image),
+      };
+    });
+
+  const normalizePrograms = (items: Program[]): Program[] =>
+    items.map((prog, idx) => {
+      const seed =
+        initialPrograms.find((item) => item.id === prog.id) ||
+        initialPrograms[idx % initialPrograms.length];
+      return {
+        ...prog,
+        image: sanitizeImageUrl(prog.image, seed.image),
+      };
+    });
+
+  const normalizeChildren = (items: ChildProfile[]): ChildProfile[] =>
+    items.map((child, idx) => {
+      const seed =
+        initialChildren.find((item) => item.id === child.id) ||
+        initialChildren[idx % initialChildren.length];
+      return {
+        ...child,
+        photo: sanitizeImageUrl(child.photo, seed.photo),
+      };
+    });
+
+  const normalizeAnnouncements = (items: Announcement[]): Announcement[] =>
+    items.map((ann, idx) => {
+      const seed =
+        initialAnnouncements.find((item) => item.id === ann.id) ||
+        initialAnnouncements[idx % initialAnnouncements.length];
+      return {
+        ...ann,
+        image: sanitizeImageUrl(ann.image, seed.image),
+      };
+    });
+
+  const normalizeDonors = (items: Donor[]): Donor[] =>
+    items.map((d, idx) => {
+      const seed =
+        initialDonors.find((item) => item.id === d.id) ||
+        initialDonors[idx % initialDonors.length];
+      const normalizedPhoto = sanitizeImageUrl(d.photo || d.logo, seed.photo);
+      return {
+        ...seed,
+        ...d,
+        photo: normalizedPhoto,
+        logo: d.logo ? sanitizeImageUrl(d.logo, normalizedPhoto) : d.logo,
+        role: d.role || d.tier || seed.role,
+        contribution: d.contribution || seed.contribution || d.description,
+        contributionDate: d.contributionDate || seed.contributionDate,
+      };
+    });
+
+  const normalizePartners = (items: Partner[]): Partner[] =>
+    items.map((p, idx) => {
+      const seed =
+        initialPartners.find((item) => item.id === p.id) ||
+        initialPartners[idx % initialPartners.length];
+      const normalizedPhoto = sanitizeImageUrl(p.photo || p.logo, seed.photo);
+      return {
+        ...seed,
+        ...p,
+        photo: normalizedPhoto,
+        logo: p.logo ? sanitizeImageUrl(p.logo, normalizedPhoto) : p.logo,
+        role: p.role || seed.role,
+        contribution: p.contribution || seed.contribution || p.description,
+        contributionDate: p.contributionDate || seed.contributionDate,
+      };
+    });
+
+  const normalizeGallery = (items: GalleryItem[]): GalleryItem[] =>
+    items.map((item, idx) => {
+      const seed =
+        initialGallery.find((g) => g.id === item.id) ||
+        initialGallery[idx % initialGallery.length];
+      return {
+        ...item,
+        url: sanitizeImageUrl(item.url, seed.url),
+      };
+    });
+
+  const normalizeLeadership = (items: LeadershipMember[]): LeadershipMember[] =>
+    items.map((member, idx) => {
+      const seed =
+        initialLeadership.find((l) => l.id === member.id) ||
+        initialLeadership[idx % initialLeadership.length];
+      return {
+        ...member,
+        photo: sanitizeImageUrl(member.photo, seed.photo),
+      };
+    });
+
   const [showcaseSlides, setShowcaseSlides] = useState<ShowcaseSlide[]>(() => {
     const loaded = loadStored<ShowcaseSlide[]>(STORAGE_KEYS.SHOWCASE_SLIDES, initialShowcaseSlides);
     if (!Array.isArray(loaded) || loaded.length === 0) {
       return initialShowcaseSlides;
     }
-    return loaded.map((slide, idx) => {
-      const seed =
-        initialShowcaseSlides.find((item) => item.id === slide.id) ||
-        initialShowcaseSlides[idx % initialShowcaseSlides.length];
-      const hasValidImage =
-        typeof slide.image === 'string' && slide.image.trim().length > 0;
-      return {
-        ...seed,
-        ...slide,
-        image: hasValidImage ? slide.image : seed.image,
-      };
-    });
+    return normalizeSlides(loaded);
   });
 
   const [isEditModeActive, setIsEditModeActive] = useState<boolean>(false);
@@ -303,46 +401,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setActivePage('admin');
   };
   const [programs, setPrograms] = useState<Program[]>(() =>
-    loadStored(STORAGE_KEYS.PROGRAMS, initialPrograms)
+    normalizePrograms(loadStored(STORAGE_KEYS.PROGRAMS, initialPrograms))
   );
   const [childrenList, setChildrenList] = useState<ChildProfile[]>(() =>
-    loadStored(STORAGE_KEYS.CHILDREN, initialChildren)
+    normalizeChildren(loadStored(STORAGE_KEYS.CHILDREN, initialChildren))
   );
   const [announcements, setAnnouncements] = useState<Announcement[]>(() =>
-    loadStored(STORAGE_KEYS.ANNOUNCEMENTS, initialAnnouncements)
+    normalizeAnnouncements(loadStored(STORAGE_KEYS.ANNOUNCEMENTS, initialAnnouncements))
   );
-  const [donors, setDonors] = useState<Donor[]>(() => {
-    const loaded = loadStored<Donor[]>(STORAGE_KEYS.DONORS, initialDonors);
-    return loaded.map((d) => {
-      const seed = initialDonors.find((item) => item.id === d.id);
-      if (!seed) return d;
-      return {
-        ...seed,
-        ...d,
-        photo: d.photo || d.logo || seed.photo,
-        role: d.role || d.tier || seed.role,
-        contribution: d.contribution || seed.contribution || d.description,
-        contributionDate: d.contributionDate || seed.contributionDate,
-      };
-    });
-  });
-  const [partners, setPartners] = useState<Partner[]>(() => {
-    const loaded = loadStored<Partner[]>(STORAGE_KEYS.PARTNERS, initialPartners);
-    return loaded.map((p) => {
-      const seed = initialPartners.find((item) => item.id === p.id);
-      if (!seed) return p;
-      return {
-        ...seed,
-        ...p,
-        photo: p.photo || p.logo || seed.photo,
-        role: p.role || seed.role,
-        contribution: p.contribution || seed.contribution || p.description,
-        contributionDate: p.contributionDate || seed.contributionDate,
-      };
-    });
-  });
+  const [donors, setDonors] = useState<Donor[]>(() =>
+    normalizeDonors(loadStored<Donor[]>(STORAGE_KEYS.DONORS, initialDonors))
+  );
+  const [partners, setPartners] = useState<Partner[]>(() =>
+    normalizePartners(loadStored<Partner[]>(STORAGE_KEYS.PARTNERS, initialPartners))
+  );
   const [gallery, setGallery] = useState<GalleryItem[]>(() =>
-    loadStored(STORAGE_KEYS.GALLERY, initialGallery)
+    normalizeGallery(loadStored(STORAGE_KEYS.GALLERY, initialGallery))
   );
   const [leadership, setLeadership] = useState<LeadershipMember[]>(() => {
     const loaded = loadStored<LeadershipMember[]>(STORAGE_KEYS.LEADERSHIP, initialLeadership);
@@ -353,7 +427,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const isExactLegacySeed =
       loaded.length === 4 &&
       loaded.every((m, idx) => m.id === `lead-${idx + 1}` && legacyNames.includes(m.name));
-    return isExactLegacySeed ? initialLeadership : loaded;
+    return isExactLegacySeed ? initialLeadership : normalizeLeadership(loaded);
   });
 
   // Registrations & inquiries
@@ -492,28 +566,28 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!localHasEdits || remoteIsNewer) {
         setSettings(normalizeSettings(remote.settings));
         if (Array.isArray(remote.showcaseSlides) && remote.showcaseSlides.length > 0) {
-          setShowcaseSlides(remote.showcaseSlides);
+          setShowcaseSlides(normalizeSlides(remote.showcaseSlides));
         }
         if (Array.isArray(remote.programs) && remote.programs.length > 0) {
-          setPrograms(remote.programs);
+          setPrograms(normalizePrograms(remote.programs));
         }
         if (Array.isArray(remote.children) && remote.children.length > 0) {
-          setChildrenList(remote.children);
+          setChildrenList(normalizeChildren(remote.children));
         }
         if (Array.isArray(remote.announcements) && remote.announcements.length > 0) {
-          setAnnouncements(remote.announcements);
+          setAnnouncements(normalizeAnnouncements(remote.announcements));
         }
         if (Array.isArray(remote.donors) && remote.donors.length > 0) {
-          setDonors(remote.donors);
+          setDonors(normalizeDonors(remote.donors));
         }
         if (Array.isArray(remote.partners) && remote.partners.length > 0) {
-          setPartners(remote.partners);
+          setPartners(normalizePartners(remote.partners));
         }
         if (Array.isArray(remote.gallery) && remote.gallery.length > 0) {
-          setGallery(remote.gallery);
+          setGallery(normalizeGallery(remote.gallery));
         }
         if (Array.isArray(remote.leadership) && remote.leadership.length > 0) {
-          setLeadership(remote.leadership);
+          setLeadership(normalizeLeadership(remote.leadership));
         }
 
         if (remote.publishedAt) {

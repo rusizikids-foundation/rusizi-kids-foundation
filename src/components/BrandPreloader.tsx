@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useData } from '../context/DataContext';
+import { FALLBACK_LOGO_URL, handleImageError } from '../utils/imageFallback';
 
 export const BrandPreloader: React.FC = () => {
   const { settings } = useData();
@@ -87,15 +88,12 @@ export const BrandPreloader: React.FC = () => {
             <img
               src={logoSrc}
               alt="Rusizi Kids Foundation Logo"
+              loading="eager"
+              decoding="async"
+              fetchPriority="high"
               className="w-full h-full object-contain rounded-full"
               referrerPolicy="no-referrer"
-              onError={(e) => {
-                const img = e.currentTarget;
-                if (!img.dataset.fallbackApplied) {
-                  img.dataset.fallbackApplied = '1';
-                  img.src = '/logo.png';
-                }
-              }}
+              onError={(e) => handleImageError(e, FALLBACK_LOGO_URL)}
             />
           </div>
         </div>

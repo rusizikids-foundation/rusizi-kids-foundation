@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useData } from '../context/DataContext';
 import { Lock, Mail, AlertCircle, KeyRound } from 'lucide-react';
+import { FALLBACK_LOGO_URL, handleImageError } from '../utils/imageFallback';
 
 interface AdminLoginModalProps {
   isOpen: boolean;
@@ -49,15 +50,11 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
             <img
               src={settings.primaryLogo || '/logo.png'}
               alt="Rusizi Kids Foundation Monogram"
+              loading="lazy"
+              decoding="async"
               className="w-full h-full object-contain rounded-full"
               referrerPolicy="no-referrer"
-              onError={(e) => {
-                const img = e.currentTarget;
-                if (!img.dataset.fallbackApplied) {
-                  img.dataset.fallbackApplied = '1';
-                  img.src = '/logo.png';
-                }
-              }}
+              onError={(e) => handleImageError(e, FALLBACK_LOGO_URL)}
             />
           </div>
           <h3 className="font-display text-xl font-bold tracking-tight text-[#F9F5F0]">

@@ -2,6 +2,7 @@ import React from 'react';
 import { useData } from '../context/DataContext';
 import { ShieldCheck, Award, Edit3, CheckCircle2, ArrowRight } from 'lucide-react';
 import { StaffMemberCard } from '../components/StaffMemberCard';
+import { FALLBACK_MENTORSHIP_URL, handleImageError } from '../utils/imageFallback';
 
 export const AboutPage: React.FC = () => {
   const { settings, leadership, setActivePage, isAdminAuthenticated, openAdminTab } = useData();
@@ -162,10 +163,13 @@ export const AboutPage: React.FC = () => {
           <div className="lg:col-span-6 space-y-4 flex flex-col justify-between">
             <div className="rounded-2xl overflow-hidden border border-[#D9A62E]/35 shadow-xl bg-[#1D120D] flex-1 min-h-[300px]">
               <img
-                src={settings.aboutHeroImage || '/assets/aistudio/New_Recording_47_6a9ce814.jpeg'}
+                src={settings.aboutHeroImage || FALLBACK_MENTORSHIP_URL}
                 alt="Mentoring Gathering at Rusizi Kids Foundation"
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full max-h-[420px] object-cover object-top"
                 referrerPolicy="no-referrer"
+                onError={(e) => handleImageError(e, FALLBACK_MENTORSHIP_URL)}
               />
             </div>
             <div className="p-4 bg-[#1D120D] border border-[#D9A62E]/30 rounded-xl flex items-start gap-3">

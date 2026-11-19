@@ -9,6 +9,7 @@ import {
   WhatsAppIcon,
 } from './SocialIcons';
 import { Mail, Phone, MapPin, ShieldCheck, ArrowUpRight, Lock } from 'lucide-react';
+import { FALLBACK_LOGO_URL, handleImageError } from '../utils/imageFallback';
 
 interface FooterProps {
   onOpenAdminLogin: () => void;
@@ -74,15 +75,11 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdminLogin }) => {
                 <img
                   src={settings.primaryLogo || '/logo.png'}
                   alt="Rusizi Kids Foundation Monogram Logo"
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-contain rounded-full"
                   referrerPolicy="no-referrer"
-                  onError={(e) => {
-                    const img = e.currentTarget;
-                    if (!img.dataset.fallbackApplied) {
-                      img.dataset.fallbackApplied = '1';
-                      img.src = '/logo.png';
-                    }
-                  }}
+                  onError={(e) => handleImageError(e, FALLBACK_LOGO_URL)}
                 />
               </div>
               <div>

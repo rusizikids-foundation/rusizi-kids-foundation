@@ -1,5 +1,6 @@
 import React from 'react';
 import { Award, ExternalLink, HeartHandshake, Quote, Star } from 'lucide-react';
+import { FALLBACK_LOGO_URL, handleImageError } from '../utils/imageFallback';
 
 export interface SupporterCardProps {
   name: string;
@@ -44,9 +45,12 @@ export const SupporterShowcaseCard: React.FC<SupporterCardProps> = ({
               <img
                 src={image}
                 alt={name}
+                loading="lazy"
+                decoding="async"
                 className="w-full h-full object-cover object-top"
                 referrerPolicy="no-referrer"
                 draggable={false}
+                onError={(e) => handleImageError(e, FALLBACK_LOGO_URL)}
               />
             ) : fallbackType === 'donor' ? (
               <Award className="w-9 h-9 text-[#F2C14E]" />
