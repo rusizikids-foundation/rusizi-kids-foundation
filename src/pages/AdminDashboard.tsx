@@ -317,11 +317,19 @@ export const AdminDashboard: React.FC = () => {
       <div className="bg-[#1D120D] text-[#F9F5F0] border-b border-[#D9A62E]/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-full bg-[#120B08] border border-[#D9A62E]/60 p-1 flex items-center justify-center shrink-0 shadow-md">
+            <div className="w-11 h-11 rounded-full bg-[#120B08] border border-[#D9A62E]/60 p-1 flex items-center justify-center shrink-0 shadow-md overflow-hidden">
               <img
-                src={settings.primaryLogo}
+                src={settings.primaryLogo || '/logo.png'}
                 alt="RKF Monogram Logo"
                 className="w-full h-full object-contain rounded-full"
+                referrerPolicy="no-referrer"
+                onError={(e) => {
+                  const img = e.currentTarget;
+                  if (!img.dataset.fallbackApplied) {
+                    img.dataset.fallbackApplied = '1';
+                    img.src = '/logo.png';
+                  }
+                }}
               />
             </div>
             <div>
