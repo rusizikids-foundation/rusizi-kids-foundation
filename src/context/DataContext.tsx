@@ -27,6 +27,12 @@ import {
   initialLeadership,
   initialShowcaseSlides,
 } from '../data/initialData';
+import {
+  fetchRemoteSiteData,
+  GITHUB_TOKEN_STORAGE_KEY,
+  publishSiteDataToGitHub,
+  SiteDataPayload,
+} from '../utils/cloudSync';
 
 interface Toast {
   id: string;
@@ -125,6 +131,19 @@ interface DataContextType {
   addToast: (message: string, type?: 'success' | 'error' | 'info') => void;
   removeToast: (id: string) => void;
   resetAllData: () => void;
+
+  // Global Cloud Sync (GitHub + public/site-data.json)
+  githubToken: string;
+  setGithubToken: (token: string) => void;
+  isPublishingLive: boolean;
+  lastPublishedAt: string | null;
+  hasUnpublishedChanges: boolean;
+  publishLiveToAllDevices: (tokenOverride?: string) => Promise<{
+    success: boolean;
+    message: string;
+    commitUrl?: string;
+  }>;
+  downloadSiteDataJson: () => void;
 }
 
 const DataContext = createContext<DataContextType | null>(null);
@@ -146,6 +165,8 @@ const STORAGE_KEYS = {
   ADMIN_AUTH: 'rkf_admin_auth_v1',
   ADMIN_PASS: 'rkf_admin_pass_v1',
   SHOWCASE_SLIDES: 'rkf_slides_v1',
+  LAST_SYNCED_AT: 'rkf_last_synced_at_v1',
+  HAS_UNPUBLISHED: 'rkf_has_unpublished_v1',
 };
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -167,13 +188,25 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const normalizeSettings = (raw?: Partial<WebsiteSettings>): WebsiteSettings => {
+    const merged: WebsiteSettings = { ...initialSettings, ...(raw || {}) };
+    if (
+      !merged.primaryLogo ||
+      merged.primaryLogo.includes('RKF_circle_icon') ||
+      merged.primaryLogo.includes('RUSIZI_FOUNDATION_afe2877a')
+    ) {
+      merged.primaryLogo = '/logo.png';
+      merged.emblemLogo = '/logo.png';
+    }
+    if (!merged.emblemLogo) {
+      merged.emblemLogo = merged.primaryLogo || '/logo.png';
+    }
+    return merged;
+  };
+
   const [settings, setSettings] = useState<WebsiteSettings>(() => {
     const loaded = loadStored<Partial<WebsiteSettings>>(STORAGE_KEYS.SETTINGS, initialSettings);
-    const merged: WebsiteSettings = { ...initialSettings, ...loaded };
-    if (merged.primaryLogo?.includes('RKF_circle_icon') || !merged.primaryLogo) {
-      merged.primaryLogo = '/assets/aistudio/RUSIZI_FOUNDATION_afe2877a.png';
-      merged.emblemLogo = '/assets/aistudio/RUSIZI_FOUNDATION_afe2877a.png';
-    }
+    const merged = normalizeSettings(loaded);
     // Ensure nested objects/arrays exist
     if (!merged.stats || merged.stats.length === 0) {
       merged.stats = initialSettings.stats;
@@ -311,9 +344,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [gallery, setGallery] = useState<GalleryItem[]>(() =>
     loadStored(STORAGE_KEYS.GALLERY, initialGallery)
   );
-  const [leadership, setLeadership] = useState<LeadershipMember[]>(() =>
-    loadStored(STORAGE_KEYS.LEADERSHIP, initialLeadership)
-  );
+  const [leadership, setLeadership] = useState<LeadershipMember[]>(() => {
+    const loaded = loadStored<LeadershipMember[]>(STORAGE_KEYS.LEADERSHIP, initialLeadership);
+    if (!Array.isArray(loaded) || loaded.length === 0) {
+      return initialLeadership;
+    }
+    const legacyNames = ['Amissa Bora', 'Jean Paul N.', 'Claudine M.', 'Eric K.'];
+    const isExactLegacySeed =
+      loaded.length === 4 &&
+      loaded.every((m, idx) => m.id === `lead-${idx + 1}` && legacyNames.includes(m.name));
+    return isExactLegacySeed ? initialLeadership : loaded;
+  });
 
   // Registrations & inquiries
   const [childRegistrations, setChildRegistrations] = useState<ChildRegistration[]>(() =>
@@ -384,6 +425,120 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [adminEmail, setAdminEmail] = useState<string | null>(() =>
     isAdminAuthenticated ? 'amissabora@gmail.com' : null
   );
+
+  // GitHub Cloud Sync states
+  const [githubToken, setGithubTokenState] = useState<string>(() => {
+    try {
+      return localStorage.getItem(GITHUB_TOKEN_STORAGE_KEY) || '';
+    } catch {
+      return '';
+    }
+  });
+  const [isPublishingLive, setIsPublishingLive] = useState<boolean>(false);
+  const [lastPublishedAt, setLastPublishedAt] = useState<string | null>(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEYS.LAST_SYNCED_AT);
+    } catch {
+      return null;
+    }
+  });
+  const [hasUnpublishedChanges, setHasUnpublishedChanges] = useState<boolean>(() =>
+    loadStored(STORAGE_KEYS.HAS_UNPUBLISHED, false)
+  );
+
+  const setGithubToken = (token: string) => {
+    setGithubTokenState(token);
+    try {
+      if (token.trim()) {
+        localStorage.setItem(GITHUB_TOKEN_STORAGE_KEY, token.trim());
+      } else {
+        localStorage.removeItem(GITHUB_TOKEN_STORAGE_KEY);
+      }
+    } catch {
+      // ignore storage errors
+    }
+  };
+
+  const markLocalChangesPending = () => {
+    setHasUnpublishedChanges(true);
+    try {
+      localStorage.setItem(STORAGE_KEYS.HAS_UNPUBLISHED, JSON.stringify(true));
+    } catch {
+      // ignore
+    }
+  };
+
+  // Automatically fetch central public/site-data.json on every visitor device load
+  useEffect(() => {
+    let active = true;
+    fetchRemoteSiteData().then((remote) => {
+      if (!active || !remote) return;
+
+      const localHasEdits = loadStored<boolean>(STORAGE_KEYS.HAS_UNPUBLISHED, false);
+      const localSyncedAt = (() => {
+        try {
+          return localStorage.getItem(STORAGE_KEYS.LAST_SYNCED_AT);
+        } catch {
+          return null;
+        }
+      })();
+
+      const remoteTime = remote.publishedAt ? Date.parse(remote.publishedAt) : 0;
+      const localTime = localSyncedAt ? Date.parse(localSyncedAt) : 0;
+      const remoteIsNewer = remoteTime > 0 && (!localTime || remoteTime > localTime);
+
+      // Visitors without local admin edits always adopt remote site-data.json;
+      // Admins with pending edits only overwrite if a newer cloud publish exists.
+      if (!localHasEdits || remoteIsNewer) {
+        setSettings(normalizeSettings(remote.settings));
+        if (Array.isArray(remote.showcaseSlides) && remote.showcaseSlides.length > 0) {
+          setShowcaseSlides(remote.showcaseSlides);
+        }
+        if (Array.isArray(remote.programs) && remote.programs.length > 0) {
+          setPrograms(remote.programs);
+        }
+        if (Array.isArray(remote.children) && remote.children.length > 0) {
+          setChildrenList(remote.children);
+        }
+        if (Array.isArray(remote.announcements) && remote.announcements.length > 0) {
+          setAnnouncements(remote.announcements);
+        }
+        if (Array.isArray(remote.donors) && remote.donors.length > 0) {
+          setDonors(remote.donors);
+        }
+        if (Array.isArray(remote.partners) && remote.partners.length > 0) {
+          setPartners(remote.partners);
+        }
+        if (Array.isArray(remote.gallery) && remote.gallery.length > 0) {
+          setGallery(remote.gallery);
+        }
+        if (Array.isArray(remote.leadership) && remote.leadership.length > 0) {
+          setLeadership(remote.leadership);
+        }
+
+        if (remote.publishedAt) {
+          setLastPublishedAt(remote.publishedAt);
+          try {
+            localStorage.setItem(STORAGE_KEYS.LAST_SYNCED_AT, remote.publishedAt);
+          } catch {
+            // ignore
+          }
+        }
+        if (remoteIsNewer) {
+          setHasUnpublishedChanges(false);
+          try {
+            localStorage.setItem(STORAGE_KEYS.HAS_UNPUBLISHED, JSON.stringify(false));
+          } catch {
+            // ignore
+          }
+        }
+      }
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   // Toasts
   const [toasts, setToasts] = useState<Toast[]>([]);
@@ -524,40 +679,47 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Settings
   const updateSettings = (newSettings: WebsiteSettings) => {
     setSettings(newSettings);
-    addToast('Website settings updated live and saved', 'success');
+    markLocalChangesPending();
+    addToast('Website settings saved locally. Click "Publish Live" to sync globally.', 'success');
   };
 
   // Showcase Slides CRUD
   const addShowcaseSlide = (slide: Omit<ShowcaseSlide, 'id'>) => {
     const id = 'slide-' + Date.now();
     setShowcaseSlides((prev) => [...prev, { ...slide, id }]);
+    markLocalChangesPending();
     addToast('Homepage photo slide added successfully', 'success');
   };
 
   const updateShowcaseSlide = (id: string, updated: Partial<ShowcaseSlide>) => {
     setShowcaseSlides((prev) => prev.map((s) => (s.id === id ? { ...s, ...updated } : s)));
+    markLocalChangesPending();
     addToast('Homepage photo slide updated live', 'success');
   };
 
   const deleteShowcaseSlide = (id: string) => {
     setShowcaseSlides((prev) => prev.filter((s) => s.id !== id));
+    markLocalChangesPending();
     addToast('Showcase slide removed', 'info');
   };
 
   // Programs CRUD
   const addProgram = (item: Omit<Program, 'id'>) => {
     const id = 'prog-' + Date.now();
-    setPrograms((prev) => [ { ...item, id }, ...prev]);
+    setPrograms((prev) => [{ ...item, id }, ...prev]);
+    markLocalChangesPending();
     addToast('New program created', 'success');
   };
 
   const updateProgram = (id: string, updated: Partial<Program>) => {
     setPrograms((prev) => prev.map((p) => (p.id === id ? { ...p, ...updated } : p)));
+    markLocalChangesPending();
     addToast('Program updated', 'success');
   };
 
   const deleteProgram = (id: string) => {
     setPrograms((prev) => prev.filter((p) => p.id !== id));
+    markLocalChangesPending();
     addToast('Program deleted', 'info');
   };
 
@@ -565,16 +727,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addChild = (item: Omit<ChildProfile, 'id'>) => {
     const id = 'child-' + Date.now();
     setChildrenList((prev) => [{ ...item, id }, ...prev]);
+    markLocalChangesPending();
     addToast('Child profile added with privacy consent', 'success');
   };
 
   const updateChild = (id: string, updated: Partial<ChildProfile>) => {
     setChildrenList((prev) => prev.map((c) => (c.id === id ? { ...c, ...updated } : c)));
+    markLocalChangesPending();
     addToast('Child profile updated', 'success');
   };
 
   const deleteChild = (id: string) => {
     setChildrenList((prev) => prev.filter((c) => c.id !== id));
+    markLocalChangesPending();
     addToast('Child profile removed', 'info');
   };
 
@@ -582,16 +747,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addAnnouncement = (item: Omit<Announcement, 'id'>) => {
     const id = 'ann-' + Date.now();
     setAnnouncements((prev) => [{ ...item, id }, ...prev]);
+    markLocalChangesPending();
     addToast('Announcement published', 'success');
   };
 
   const updateAnnouncement = (id: string, updated: Partial<Announcement>) => {
     setAnnouncements((prev) => prev.map((a) => (a.id === id ? { ...a, ...updated } : a)));
+    markLocalChangesPending();
     addToast('Announcement updated', 'success');
   };
 
   const deleteAnnouncement = (id: string) => {
     setAnnouncements((prev) => prev.filter((a) => a.id !== id));
+    markLocalChangesPending();
     addToast('Announcement removed', 'info');
   };
 
@@ -599,16 +767,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addDonor = (item: Omit<Donor, 'id'>) => {
     const id = 'donor-' + Date.now();
     setDonors((prev) => [{ ...item, id }, ...prev]);
+    markLocalChangesPending();
     addToast('Donor added', 'success');
   };
 
   const updateDonor = (id: string, updated: Partial<Donor>) => {
     setDonors((prev) => prev.map((d) => (d.id === id ? { ...d, ...updated } : d)));
+    markLocalChangesPending();
     addToast('Donor updated', 'success');
   };
 
   const deleteDonor = (id: string) => {
     setDonors((prev) => prev.filter((d) => d.id !== id));
+    markLocalChangesPending();
     addToast('Donor removed', 'info');
   };
 
@@ -616,16 +787,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addPartner = (item: Omit<Partner, 'id'>) => {
     const id = 'partner-' + Date.now();
     setPartners((prev) => [{ ...item, id }, ...prev]);
+    markLocalChangesPending();
     addToast('Partner added', 'success');
   };
 
   const updatePartner = (id: string, updated: Partial<Partner>) => {
     setPartners((prev) => prev.map((p) => (p.id === id ? { ...p, ...updated } : p)));
+    markLocalChangesPending();
     addToast('Partner updated', 'success');
   };
 
   const deletePartner = (id: string) => {
     setPartners((prev) => prev.filter((p) => p.id !== id));
+    markLocalChangesPending();
     addToast('Partner removed', 'info');
   };
 
@@ -633,16 +807,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addGalleryItem = (item: Omit<GalleryItem, 'id'>) => {
     const id = 'gal-' + Date.now();
     setGallery((prev) => [{ ...item, id }, ...prev]);
+    markLocalChangesPending();
     addToast('Media uploaded to gallery', 'success');
   };
 
   const updateGalleryItem = (id: string, updated: Partial<GalleryItem>) => {
     setGallery((prev) => prev.map((g) => (g.id === id ? { ...g, ...updated } : g)));
+    markLocalChangesPending();
     addToast('Media details updated', 'success');
   };
 
   const deleteGalleryItem = (id: string) => {
     setGallery((prev) => prev.filter((g) => g.id !== id));
+    markLocalChangesPending();
     addToast('Media removed', 'info');
   };
 
@@ -650,16 +827,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addLeadership = (item: Omit<LeadershipMember, 'id'>) => {
     const id = 'lead-' + Date.now();
     setLeadership((prev) => [...prev, { ...item, id }]);
+    markLocalChangesPending();
     addToast('Leadership profile added', 'success');
   };
 
   const updateLeadership = (id: string, updated: Partial<LeadershipMember>) => {
     setLeadership((prev) => prev.map((l) => (l.id === id ? { ...l, ...updated } : l)));
+    markLocalChangesPending();
     addToast('Leadership profile updated', 'success');
   };
 
   const deleteLeadership = (id: string) => {
     setLeadership((prev) => prev.filter((l) => l.id !== id));
+    markLocalChangesPending();
     addToast('Profile removed', 'info');
   };
 
@@ -860,6 +1040,63 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     addToast('Administrator logged out safely', 'info');
   };
 
+  const buildSiteDataPayload = (): SiteDataPayload => ({
+    version: 1,
+    publishedAt: new Date().toISOString(),
+    settings,
+    showcaseSlides,
+    programs,
+    children: childrenList,
+    announcements,
+    donors,
+    partners,
+    gallery,
+    leadership,
+  });
+
+  const publishLiveToAllDevices = async (tokenOverride?: string) => {
+    const activeToken = (tokenOverride ?? githubToken).trim();
+    if (!activeToken) {
+      const msg =
+        'Enter your GitHub Sync Token inside Website Settings (Logo, Sync & Security) first.';
+      addToast(msg, 'error');
+      return { success: false, message: msg };
+    }
+
+    setIsPublishingLive(true);
+    const payload = buildSiteDataPayload();
+    const res = await publishSiteDataToGitHub(payload, activeToken);
+    setIsPublishingLive(false);
+
+    if (res.success) {
+      setLastPublishedAt(payload.publishedAt);
+      setHasUnpublishedChanges(false);
+      try {
+        localStorage.setItem(STORAGE_KEYS.LAST_SYNCED_AT, payload.publishedAt);
+        localStorage.setItem(STORAGE_KEYS.HAS_UNPUBLISHED, JSON.stringify(false));
+      } catch {
+        // ignore
+      }
+      addToast(res.message, 'success');
+    } else {
+      addToast(res.message, 'error');
+    }
+
+    return res;
+  };
+
+  const downloadSiteDataJson = () => {
+    const payload = buildSiteDataPayload();
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'site-data.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    addToast('Downloaded site-data.json', 'success');
+  };
+
   const resetAllData = () => {
     localStorage.clear();
     setSettings(initialSettings);
@@ -871,6 +1108,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setPartners(initialPartners);
     setGallery(initialGallery);
     setLeadership(initialLeadership);
+    setHasUnpublishedChanges(false);
     addToast('Website reset to default official data', 'info');
   };
 
@@ -948,6 +1186,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         addToast,
         removeToast,
         resetAllData,
+        githubToken,
+        setGithubToken,
+        isPublishingLive,
+        lastPublishedAt,
+        hasUnpublishedChanges,
+        publishLiveToAllDevices,
+        downloadSiteDataJson,
       }}
     >
       {children}

@@ -40,7 +40,12 @@ import {
   TrendingUp,
   Smartphone,
   Landmark,
+  CloudUpload,
+  Loader2,
+  ExternalLink,
+  AlertCircle,
 } from 'lucide-react';
+import { GITHUB_SYNC_CONFIG } from '../utils/cloudSync';
 
 type AdminTab =
   | 'overview'
@@ -123,9 +128,23 @@ export const AdminDashboard: React.FC = () => {
     logoutAdmin,
     addToast,
     resetAllData,
+    githubToken,
+    setGithubToken,
+    isPublishingLive,
+    lastPublishedAt,
+    hasUnpublishedChanges,
+    publishLiveToAllDevices,
+    downloadSiteDataJson,
   } = useData();
 
   const [activeTab, setActiveTab] = useState<AdminTab>('overview');
+  const [tokenInput, setTokenInput] = useState<string>(githubToken || '');
+  const [showToken, setShowToken] = useState<boolean>(false);
+  const [publishResult, setPublishResult] = useState<{
+    success: boolean;
+    message: string;
+    commitUrl?: string;
+  } | null>(null);
   const [currentPass, setCurrentPass] = useState('');
   const [newPass, setNewPass] = useState('');
   const [confirmPass, setConfirmPass] = useState('');
@@ -187,6 +206,15 @@ export const AdminDashboard: React.FC = () => {
     updateSettings(settingsForm);
   };
 
+  const handlePublishLive = async () => {
+    setPublishResult(null);
+    if (tokenInput.trim() !== githubToken.trim()) {
+      setGithubToken(tokenInput.trim());
+    }
+    const res = await publishLiveToAllDevices(tokenInput.trim());
+    setPublishResult(res);
+  };
+
   const handleExportJson = () => {
     const backup = {
       settings,
@@ -237,7 +265,7 @@ export const AdminDashboard: React.FC = () => {
     badge: number | null;
   }[] = [
     { id: 'overview', label: 'Dashboard Overview', icon: Layout, badge: null },
-    { id: 'branding_security', label: 'Logo, WhatsApp & Security', icon: KeyRound, badge: null },
+    { id: 'branding_security', label: 'Website Settings & Cloud Sync', icon: CloudUpload, badge: null },
     {
       id: 'hero_slideshow',
       label: 'Hero & Showcase Photos',
@@ -312,6 +340,32 @@ export const AdminDashboard: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => {
+                if (tokenInput.trim()) {
+                  handlePublishLive();
+                } else {
+                  setActiveTab('branding_security');
+                  addToast('Enter your optional GitHub Sync Token in Website Settings to publish live.', 'info');
+                }
+              }}
+              disabled={isPublishingLive}
+              className="px-3.5 py-1.5 bg-gradient-to-r from-[#D9A62E] to-[#F2C14E] hover:brightness-110 text-[#120B08] text-xs font-extrabold uppercase tracking-wider rounded-lg transition-all shadow-md flex items-center gap-1.5 disabled:opacity-60"
+            >
+              {isPublishingLive ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <CloudUpload className="w-3.5 h-3.5" />
+              )}
+              <span>
+                {isPublishingLive
+                  ? 'Publishing...'
+                  : hasUnpublishedChanges
+                  ? 'Publish Live (Unsaved)'
+                  : 'Publish Live to All Devices'}
+              </span>
+            </button>
             <button
               type="button"
               onClick={() => setActivePage('home')}
@@ -552,9 +606,128 @@ export const AdminDashboard: React.FC = () => {
               </div>
             )}
 
-            {/* 1B. BRANDING, PARENTS WHATSAPP INVITE & SECURITY TAB */}
+            {/* 1B. WEBSITE SETTINGS, GLOBAL CLOUD SYNC, LOGO & SECURITY TAB */}
             {activeTab === 'branding_security' && (
               <div className="space-y-6">
+                {/* Direct GitHub Cloud Sync & Global Publishing */}
+                <div className={`${CARD_CLASS} space-y-5 border-2 border-[#D9A62E]/50`}>
+                  <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#D9A62E]/25 pb-4">
+                    <div className="space-y-1 max-w-2xl">
+                      <div className="flex items-center gap-2">
+                        <CloudUpload className="w-4 h-4 text-[#F2C14E]" />
+                        <h3 className="text-base font-bold text-[#F9F5F0]">
+                          Global Cloud Sync — Publish Live to All Devices
+                        </h3>
+                      </div>
+                      <p className="text-xs text-[#D6C7B8] leading-relaxed">
+                        Every phone and computer worldwide automatically fetches{' '}
+                        <code className="font-mono text-[#F2C14E] bg-[#120B08] px-1.5 py-0.5 rounded">
+                          /{GITHUB_SYNC_CONFIG.path}
+                        </code>{' '}
+                        on load. Commit your latest Hero slides, Impact Stats, Staff roster, Programs, Gallery, Donors, and Settings straight to{' '}
+                        <span className="font-mono text-[#F9F5F0]">
+                          {GITHUB_SYNC_CONFIG.owner}/{GITHUB_SYNC_CONFIG.repo}
+                        </span>{' '}
+                        so Vercel updates all visitors within ~15 seconds.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handlePublishLive}
+                      disabled={isPublishingLive}
+                      className={`${GOLD_BTN_CLASS} py-2.5 px-5 shrink-0 disabled:opacity-60`}
+                    >
+                      {isPublishingLive ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <CloudUpload className="w-4 h-4" />
+                      )}
+                      <span>
+                        {isPublishingLive ? 'Publishing Live...' : 'Publish Live to All Devices'}
+                      </span>
+                    </button>
+                  </div>
+
+                  {publishResult && (
+                    <div
+                      className={`p-4 rounded-xl text-xs flex flex-wrap items-center justify-between gap-3 border ${
+                        publishResult.success
+                          ? 'bg-[#281912] border-[#D9A62E] text-[#F9F5F0]'
+                          : 'bg-rose-950/60 border-rose-500/45 text-rose-100'
+                      }`}
+                    >
+                      <div className="flex items-start gap-2.5">
+                        {publishResult.success ? (
+                          <CheckCircle2 className="w-4 h-4 text-[#F2C14E] shrink-0 mt-0.5" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                        )}
+                        <span>{publishResult.message}</span>
+                      </div>
+                      {publishResult.commitUrl && (
+                        <a
+                          href={publishResult.commitUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[#F2C14E] font-bold hover:underline"
+                        >
+                          <span>View GitHub Commit</span>
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+                    <div className="md:col-span-8 space-y-1.5">
+                      <label className={LABEL_CLASS}>
+                        GitHub Sync Token (Optional · Stored Securely in This Browser Only)
+                      </label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type={showToken ? 'text' : 'password'}
+                          value={tokenInput}
+                          onChange={(e) => {
+                            setTokenInput(e.target.value);
+                            setGithubToken(e.target.value);
+                          }}
+                          placeholder="github_pat_... or ghp_... (Contents: Read and write)"
+                          className={`${INPUT_CLASS} font-mono`}
+                          autoComplete="off"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowToken((prev) => !prev)}
+                          className="px-3 py-2 rounded-lg bg-[#281912] hover:bg-[#362218] text-[#D6C7B8] border border-[#D9A62E]/35 text-xs font-semibold shrink-0"
+                        >
+                          {showToken ? 'Hide' : 'Show'}
+                        </button>
+                      </div>
+                      <p className="text-[11px] text-[#A89585]">
+                        Need a token? GitHub → Settings → Developer settings → Fine-grained tokens → Select{' '}
+                        <span className="text-[#D6C7B8] font-mono">rusizi-kids-foundation</span> → Repository permissions: Contents (Read and write).
+                      </p>
+                    </div>
+
+                    <div className="md:col-span-4 flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={downloadSiteDataJson}
+                        className="w-full px-3.5 py-2 rounded-lg bg-[#281912] hover:bg-[#362218] text-[#F2C14E] border border-[#D9A62E]/40 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download site-data.json</span>
+                      </button>
+                      <span className="text-[11px] text-[#A89585] text-center font-mono tabular-nums">
+                        {lastPublishedAt
+                          ? `Last synced: ${new Date(lastPublishedAt).toLocaleString()}`
+                          : 'Synced with initial build data'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Website Logo & Identity */}
                 <div className={`${CARD_CLASS} space-y-5`}>
                   <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#D9A62E]/25 pb-3">

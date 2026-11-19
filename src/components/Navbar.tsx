@@ -96,10 +96,17 @@ export const Navbar: React.FC = () => {
           >
             <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden border border-[#D9A62E] shadow-[0_0_16px_rgba(217,166,46,0.22)] shrink-0 bg-[#1D120D] group-hover:scale-105 transition-transform duration-200 p-0.5">
               <img
-                src={settings.primaryLogo}
+                src={settings.primaryLogo || '/logo.png'}
                 alt="Rusizi Kids Foundation Circular Gold Monogram Logo"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain rounded-full"
                 referrerPolicy="no-referrer"
+                onError={(e) => {
+                  const img = e.currentTarget;
+                  if (!img.dataset.fallbackApplied) {
+                    img.dataset.fallbackApplied = '1';
+                    img.src = '/logo.png';
+                  }
+                }}
               />
             </div>
             <div className="min-w-0">

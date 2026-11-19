@@ -70,12 +70,19 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdminLogin }) => {
           {/* Column 1: Brand & Safeguarding */}
           <div className="lg:col-span-4 space-y-4">
             <div className="flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-full border border-[#D9A62E] bg-[#1D120D] p-1 shrink-0 shadow-[0_0_16px_rgba(217,166,46,0.2)]">
+              <div className="w-12 h-12 rounded-full border border-[#D9A62E] bg-[#1D120D] p-1 shrink-0 shadow-[0_0_16px_rgba(217,166,46,0.2)] overflow-hidden">
                 <img
-                  src={settings.primaryLogo}
+                  src={settings.primaryLogo || '/logo.png'}
                   alt="Rusizi Kids Foundation Monogram Logo"
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-contain rounded-full"
                   referrerPolicy="no-referrer"
+                  onError={(e) => {
+                    const img = e.currentTarget;
+                    if (!img.dataset.fallbackApplied) {
+                      img.dataset.fallbackApplied = '1';
+                      img.src = '/logo.png';
+                    }
+                  }}
                 />
               </div>
               <div>

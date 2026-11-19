@@ -45,12 +45,19 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({
       <div className="bg-[#1D120D] rounded-2xl max-w-md w-full shadow-[0_0_40px_rgba(217,166,46,0.2)] border border-[#D9A62E]/45 overflow-hidden">
         {/* Modal Header */}
         <div className="bg-[#281912] p-6 text-[#F9F5F0] text-center relative border-b border-[#D9A62E]/25">
-          <div className="w-16 h-16 rounded-full bg-[#120B08] border border-[#D9A62E] flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_rgba(217,166,46,0.25)] p-1.5">
+          <div className="w-16 h-16 rounded-full bg-[#120B08] border border-[#D9A62E] flex items-center justify-center mx-auto mb-3 shadow-[0_0_20px_rgba(217,166,46,0.25)] p-1.5 overflow-hidden">
             <img
-              src={settings.primaryLogo}
+              src={settings.primaryLogo || '/logo.png'}
               alt="Rusizi Kids Foundation Monogram"
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain rounded-full"
               referrerPolicy="no-referrer"
+              onError={(e) => {
+                const img = e.currentTarget;
+                if (!img.dataset.fallbackApplied) {
+                  img.dataset.fallbackApplied = '1';
+                  img.src = '/logo.png';
+                }
+              }}
             />
           </div>
           <h3 className="font-display text-xl font-bold tracking-tight text-[#F9F5F0]">

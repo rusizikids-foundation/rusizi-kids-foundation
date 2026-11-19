@@ -31,8 +31,7 @@ export const BrandPreloader: React.FC = () => {
     return null;
   }
 
-  const logoSrc =
-    settings.primaryLogo || '/assets/aistudio/RUSIZI_FOUNDATION_afe2877a.png';
+  const logoSrc = settings.primaryLogo || '/logo.png';
   const foundationTitle = (
     settings.foundationName || 'Rusizi Kids Foundation'
   ).toUpperCase();
@@ -94,7 +93,7 @@ export const BrandPreloader: React.FC = () => {
                 const img = e.currentTarget;
                 if (!img.dataset.fallbackApplied) {
                   img.dataset.fallbackApplied = '1';
-                  img.src = '/assets/aistudio/RUSIZI_FOUNDATION_afe2877a.png';
+                  img.src = '/logo.png';
                 }
               }}
             />

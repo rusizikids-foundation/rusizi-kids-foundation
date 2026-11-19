@@ -84,8 +84,16 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
   const leftPct = -(panX / 100) * slackFracX * 100;
   const topPct = -(panY / 100) * slackFracY * 100;
 
-  // Resize and compress newly uploaded image to a clean baseline (max 1400px)
-  // while keeping quality high before the admin adjusts crop/framing.
+  // Compress canvas output using WebP 0.8 (with automatic JPEG 0.8 fallback)
+  const encodeCompressedCanvas = (canvas: HTMLCanvasElement): string => {
+    const webpUrl = canvas.toDataURL('image/webp', 0.8);
+    if (webpUrl.startsWith('data:image/webp')) {
+      return webpUrl;
+    }
+    return canvas.toDataURL('image/jpeg', 0.8);
+  };
+
+  // Resize and compress newly uploaded images cleanly in browser (max 1000px width, 0.8 WebP/JPEG)
   const readAndOptimizeFile = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -96,15 +104,12 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
           let width = img.naturalWidth || img.width;
           let height = img.naturalHeight || img.height;
 
-          const maxDim = 1400;
-          if (width > maxDim || height > maxDim) {
-            if (width > height) {
-              height = Math.round((height * maxDim) / width);
-              width = maxDim;
-            } else {
-              width = Math.round((width * maxDim) / height);
-              height = maxDim;
-            }
+          const maxWidth = 1000;
+          const maxHeight = 1000;
+          if (width > maxWidth || height > maxHeight) {
+            const scale = Math.min(maxWidth / width, maxHeight / height);
+            width = Math.max(1, Math.round(width * scale));
+            height = Math.max(1, Math.round(height * scale));
           }
 
           canvas.width = width;
@@ -116,8 +121,7 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
           }
 
           ctx.drawImage(img, 0, 0, width, height);
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.88);
-          resolve(dataUrl);
+          resolve(encodeCompressedCanvas(canvas));
         };
         img.onerror = () => reject(new Error('Failed to load image'));
         img.src = e.target?.result as string;
@@ -172,8 +176,8 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
 
     img.onload = () => {
       try {
-        const outW = shape === 'landscape' ? 1200 : 720;
-        const outH = shape === 'landscape' ? 800 : 720;
+        const outW = shape === 'landscape' ? 1000 : 720;
+        const outH = shape === 'landscape' ? 667 : 720;
 
         const naturalW = img.naturalWidth || img.width;
         const naturalH = img.naturalHeight || img.height;
@@ -198,7 +202,7 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
         ctx.fillRect(0, 0, outW, outH);
         ctx.drawImage(img, dx, dy, dW, dH);
 
-        const croppedDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        const croppedDataUrl = encodeCompressedCanvas(canvas);
         lastEmittedCropRef.current = croppedDataUrl;
         onChange(croppedDataUrl);
         setCropSavedFeedback(true);
@@ -350,8 +354,7 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
                   className="w-full h-full object-cover object-top"
                   referrerPolicy="no-referrer"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      '/assets/aistudio/RUSIZI_FOUNDATION_afe2877a.png';
+                    (e.target as HTMLImageElement).src = '/logo.png';
                   }}
                 />
               </div>
