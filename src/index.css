@@ -1,0 +1,239 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+
+  --color-espresso-950: #120B08;
+  --color-espresso-900: #1D120D;
+  --color-espresso-850: #281912;
+  --color-espresso-800: #362218;
+  --color-champagne-100: #F9F5F0;
+  --color-champagne-200: #D6C7B8;
+  --color-champagne-400: #A89585;
+
+  --color-gold-600: #B8861B;
+  --color-gold-500: #D9A62E;
+  --color-gold-400: #F2C14E;
+}
+
+@layer base {
+  :root {
+    --color-bg-deep: #120B08;
+    --color-surface-chocolate: #1D120D;
+    --color-surface-elevated: #281912;
+    --color-gold-primary: #D9A62E;
+    --color-gold-light: #F2C14E;
+    --color-border-gold: rgba(217, 166, 46, 0.28);
+    --color-text-light: #F9F5F0;
+    --color-text-sand: #D6C7B8;
+  }
+
+  html {
+    font-family: var(--font-sans);
+    scroll-behavior: smooth;
+    background-color: #120B08;
+    color: #F9F5F0;
+  }
+
+  body {
+    background-color: #120B08;
+    color: #F9F5F0;
+  }
+
+  h1, h2, .font-display {
+    font-family: var(--font-display);
+    text-wrap: balance;
+  }
+}
+
+.luxury-card {
+  background-color: #1D120D;
+  border: 1px solid rgba(217, 166, 46, 0.28);
+  transition: border-color 180ms cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1),
+              transform 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.luxury-card:hover {
+  border-color: rgba(242, 193, 78, 0.62);
+  box-shadow: 0 12px 32px -12px rgba(217, 166, 46, 0.22);
+}
+
+@keyframes kenburns {
+  0% {
+    transform: scale(1);
+  }
+  100% {
+    transform: scale(1.12);
+  }
+}
+
+@keyframes kenburnsAlt {
+  0% {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+  100% {
+    transform: scale(1.12) translate3d(-1%, -0.5%, 0);
+  }
+}
+
+@keyframes marqueeScroll {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translate3d(16px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.animate-kenburns {
+  animation: kenburns 6s ease-out forwards;
+  will-change: transform;
+}
+
+.animate-kenburns-alt {
+  animation: kenburnsAlt 6s ease-out forwards;
+  will-change: transform;
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marqueeScroll var(--marquee-duration, 36s) linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+.animate-fade-in {
+  animation: fadeIn 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 220ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes preloaderLogoIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes preloaderTextIn {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes preloaderHalo {
+  0%, 100% {
+    opacity: 0.45;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes preloaderRingSpin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes preloaderProgress {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.animate-preloader-logo {
+  animation: preloaderLogoIn 700ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-preloader-text {
+  animation: preloaderTextIn 700ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+}
+
+.animate-preloader-halo {
+  animation: preloaderHalo 2s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.animate-preloader-ring {
+  animation: preloaderRingSpin 2.6s linear infinite;
+  will-change: transform;
+}
+
+.animate-preloader-ring-reverse {
+  animation: preloaderRingSpin 4.2s linear infinite reverse;
+  will-change: transform;
+}
+
+.animate-preloader-progress {
+  animation: preloaderProgress 2000ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: width;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-kenburns,
+  .animate-kenburns-alt,
+  .animate-marquee,
+  .animate-fade-in,
+  .animate-slide-in-right,
+  .animate-preloader-logo,
+  .animate-preloader-text,
+  .animate-preloader-halo,
+  .animate-preloader-ring,
+  .animate-preloader-ring-reverse {
+    animation: none !important;
+  }
+  .animate-preloader-progress {
+    animation: none !important;
+    width: 100%;
+  }
+}

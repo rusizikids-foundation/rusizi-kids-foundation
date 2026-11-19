@@ -1,0 +1,6 @@
+{
+  "name": "Rusizi Kids Foundation (RKF)",
+  "description": "Official website for Rusizi Kids Foundation (RKF) in Rusizi, Rwanda. Developing, nurturing, and promoting the talents of children aged 5–17. From Rusizi to the World.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

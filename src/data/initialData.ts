@@ -1,0 +1,733 @@
+import {
+  WebsiteSettings,
+  Program,
+  ChildProfile,
+  Announcement,
+  Donor,
+  Partner,
+  GalleryItem,
+  LeadershipMember,
+  ShowcaseSlide,
+} from '../types';
+
+export const initialSettings: WebsiteSettings = {
+  foundationName: 'Rusizi Kids Foundation',
+  abbreviation: 'RKF',
+  slogan: 'FROM RUSIZI TO THE WORLD.',
+  mission:
+    'To nurture and develop the talents of children aged 5–17 by providing opportunities, training, support, and platforms for creative expression.',
+  vision:
+    'To become a recognized foundation that empowers talented children and connects their opportunities from Rusizi to the world.',
+  purpose:
+    'To develop, nurture, support, and promote the talents of children aged 5–17.',
+  location: 'Rusizi District, Western Province, Rwanda',
+  officialEmail: 'amissabora@gmail.com',
+  officialPhones: ['+250 798 465 782', '+250 794 228 258'],
+  socialLinks: {
+    tikTok: 'https://www.tiktok.com/@rusizikidsfoundation',
+    youTube: 'https://www.youtube.com/@RUSIZIKIDSNEWGENERATIONDANCE',
+    facebook: 'https://web.facebook.com/profile.php?id=61592402924108&sk=reels_tab',
+    linkedIn: 'https://www.linkedin.com/in/rusizi-kids-foundation-a88877437/',
+    instagram: 'https://www.instagram.com/rusizikidsfoundation/',
+    whatsAppGroup: 'https://chat.whatsapp.com/FysXKjXF5GG3eW5kSPy044',
+  },
+  primaryLogo: '/assets/aistudio/RUSIZI_FOUNDATION_afe2877a.png',
+  emblemLogo: '/assets/aistudio/RUSIZI_FOUNDATION_afe2877a.png',
+  announcementTicker: 'Registration open for Youth Talent Academy 2026 · Dance, Film, Fashion & Music',
+
+  // Hero Section
+  heroBadgeText: 'Rusizi, Rwanda · Talent Incubation Foundation',
+  heroHeadlineLine1: 'FROM RUSIZI',
+  heroHeadlineHighlight: 'TO THE WORLD.',
+  heroDescription:
+    'Rusizi Kids Foundation develops, nurtures, and promotes the extraordinary creative talents of children aged 5–17 in dance, film, music, fashion, and education.',
+  heroCta1Text: 'Join RKF Today',
+  heroCta1Page: 'join',
+  heroCta2Text: 'Support Our Children',
+  heroCta2Page: 'donors',
+  heroImage: '/assets/aistudio/New_Recording_69_2dab5d6c.jpeg',
+  heroCaptionTitle: 'Youth Assembly in Rusizi',
+  heroCaptionText:
+    'Over 60 young dancers, actors, and creators coming together for artistic training, teamwork, and cultural pride.',
+
+  // Impact Statistics
+  stats: [
+    { id: 'stat-1', number: '120+', label: 'Children Nurtured', highlight: false },
+    { id: 'stat-2', number: '8', label: 'Talent Disciplines', highlight: true },
+    { id: 'stat-3', number: '5–17', label: 'Age Group Focus', highlight: false },
+    { id: 'stat-4', number: '100%', label: 'Verified Guardian Consent', highlight: true },
+  ],
+
+  // About Section & Page
+  aboutStoryHeadline: 'From the Hills of Rusizi to the Creative Horizon',
+  aboutStoryParagraphs: [
+    'Rusizi District in the Western Province of Rwanda is home to vibrant, spirited young minds full of natural musicality, physical agility, and expressive emotion. Yet, far from the capital city of Kigali, many talented children lacked structured rehearsal spaces, costumes, artistic mentors, and protective guidance.',
+    'Rusizi Kids Foundation was established to change that reality. By creating a warm, safe community sanctuary, we invited children aged 5 to 17 to discover their artistic voice. Whether mastering modern Afrobeat synchronization, preserving ancient Rwandan Itorero dance with traditional broom regalia, or acting in short films, each child is provided a structured path to thrive.',
+    'We do not view artistic training in isolation. Every participant must be enrolled in school, with our coordinators monitoring attendance and academic effort. Through regular community cleaning actions (Umuganda) and anti-drug peer campaigns, our children grow into responsible citizens who lead by example.',
+  ],
+  aboutCoreValues: [
+    {
+      id: 'val-1',
+      title: 'Talent Empowerment',
+      desc: 'Believing in the boundless artistic and intellectual potential of every child from Rusizi, regardless of socioeconomic background.',
+    },
+    {
+      id: 'val-2',
+      title: 'Child Safeguarding & Dignity',
+      desc: 'Ensuring zero tolerance for abuse, verified parental consent for all public appearances, and safe emotional and physical spaces.',
+    },
+    {
+      id: 'val-3',
+      title: 'Rwandan Cultural Heritage',
+      desc: 'Preserving Itorero traditional dances, storytelling, drumming, and patriotic values as an anchor of identity.',
+    },
+    {
+      id: 'val-4',
+      title: 'Academic & Talent Synergy',
+      desc: 'Requiring all enrolled children to attend school, with after-school tutoring and book supplies provided by our partners.',
+    },
+    {
+      id: 'val-5',
+      title: 'Civic Responsibility (Umuganda)',
+      desc: 'Instilling community solidarity, hygiene, environmental tree planting, and positive peer leadership across Rusizi.',
+    },
+  ],
+  aboutCommunityContext: 'Western Province, Rusizi District, Rwanda',
+  aboutHeroImage: '/assets/aistudio/New_Recording_47_6a9ce814.jpeg',
+  aboutProtectionPledge:
+    'Rusizi Kids Foundation strictly adheres to Rwandan child protection laws (Law N° 71/2018 relating to the protection of the child). We obtain written guardian consent before any photo publication or public artistic performance.',
+
+  // Contact & Office
+  contactOfficeHours: 'Monday – Saturday: 8:00 AM – 5:30 PM (CAT)',
+  googleMapsEmbedUrl:
+    'https://maps.google.com/maps?q=-2.4877552,28.8997162+(Rusizi%20Kids%20Foundation)&t=&z=16&ie=UTF8&iwloc=&output=embed',
+  googleMapsShareUrl: 'https://maps.app.goo.gl/MugsUVjyLabnKDBD9',
+
+  // Footer Details
+  footerMissionBlurb:
+    'Rusizi Kids Foundation (RKF) is a dedicated talent incubation nonprofit in Rusizi, Rwanda. We develop, nurture, support, and promote children and youth through dance, film, music, fashion, and education.',
+  footerSafeguardingNote: 'Strict Child Protection & Privacy Safeguards Enforced',
+  footerCopyrightText: 'Rusizi Kids Foundation (RKF). All rights reserved.',
+
+  // Navigation Items
+  navItems: [
+    { id: 'home', label: 'Home', visible: true },
+    { id: 'about', label: 'About Us', visible: true },
+    { id: 'programs', label: 'Our Programs', visible: true },
+    { id: 'children', label: 'Our Children', visible: true },
+    { id: 'news', label: 'News & Events', visible: true },
+    { id: 'donors', label: 'Donors & Partners', visible: true },
+    { id: 'gallery', label: 'Gallery', visible: true },
+    { id: 'contact', label: 'Contact Us', visible: true },
+  ],
+
+  // Post-Registration WhatsApp Confirmation
+  registrationWhatsAppUrl: 'https://chat.whatsapp.com/FysXKjXF5GG3eW5kSPy044',
+  registrationWhatsAppTitle: 'Registration Submitted Successfully!',
+  registrationWhatsAppSubtitle: 'Thank you for registering your child with Rusizi Kids Foundation.',
+  registrationWhatsAppMessage: 'Stay connected with updates, schedules, and announcements by joining the official Parents WhatsApp Group.',
+  registrationWhatsAppButtonText: 'Join Parents WhatsApp Group',
+
+  // Donation & Payment Methods
+  donationMomoUssdCode: '*182*1*1*0798465782#',
+  donationMomoPhone: '+250 798 465 782',
+  donationAirtelPhone: '+250 794 228 258',
+  donationAccountName: 'Rusizi Kids Foundation',
+  donationBankName: '',
+  donationBankAccountNumber: '',
+  donationBankAccountName: '',
+  donationBankSwiftCode: '',
+};
+
+export const initialShowcaseSlides: ShowcaseSlide[] = [
+  {
+    id: 'slide-1',
+    image: '/assets/aistudio/New_Recording_35_583fbbcd.jpeg',
+    category: 'Traditional Rwandan Itorero',
+    title: 'Heritage, Rhythm & Cultural Pride',
+    subtitle: 'Preserving Rwandan traditions through authentic kitenge attire and grace',
+    caption:
+      'Our young traditional dancers embody centuries of Rwandan cultural expression, learning intricate choreography, rhythm, and stage discipline in Rusizi.',
+    ageRange: 'Ages 7–15',
+  },
+  {
+    id: 'slide-2',
+    image: '/assets/aistudio/New_Recording_14_17ffd186.jpeg',
+    category: 'New Generation Urban Dance',
+    title: 'Dynamic Youth Movement & Passion',
+    subtitle: 'From local rehearsals to regional stages',
+    caption:
+      'The New Generation dance ensemble channels raw energy, synchronized modern choreography, and teamwork, proving that talent from Rusizi knows no borders.',
+    ageRange: 'Ages 10–17',
+  },
+  {
+    id: 'slide-3',
+    image: '/assets/aistudio/New_Recording_31_1a5b87d9.jpeg',
+    category: 'Cultural Folk Arts',
+    title: 'The Graceful Traditional Trio',
+    subtitle: 'Mastering elegance, posture, and traditional storytelling',
+    caption:
+      'With handmade traditional regalia and coordinated storytelling movements, our children celebrate the rich cultural tapestry of the Western Province.',
+    ageRange: 'Ages 8–14',
+  },
+  {
+    id: 'slide-4',
+    image: '/assets/aistudio/New_Recording_2_2317054a.jpeg',
+    category: 'Junior Talent Academy',
+    title: 'Inspiring the Next Generation',
+    subtitle: 'Building stage confidence from early childhood',
+    caption:
+      'Nurturing children from age 5 with supportive mentorship, rhythmic play, and creative movement that builds lifelong self-esteem and joyful fellowship.',
+    ageRange: 'Ages 5–10',
+  },
+  {
+    id: 'slide-5',
+    image: '/assets/aistudio/New_Recording_47_6a9ce814.jpeg',
+    category: 'Film & Dramatic Acting',
+    title: 'Creative Dramatic Expression',
+    subtitle: 'Developing storytellers, actors, and voice',
+    caption:
+      'Through scene study, character improvisation, and film workshops, children learn empathetic communication, camera presence, and expressive courage.',
+    ageRange: 'Ages 9–16',
+  },
+  {
+    id: 'slide-6',
+    image: '/assets/aistudio/New_Recording_33_8b30aaf5.jpeg',
+    category: 'Fashion & Kitenge Runway',
+    title: 'Cultural Heritage in Motion',
+    subtitle: 'Confidence, posture, and pride in Rwandan craftsmanship',
+    caption:
+      'Showcasing Rwandan textile heritage on the runway. Our youth build poise, stage presence, and creative styling under expert mentorship.',
+    ageRange: 'Ages 8–16',
+  },
+  {
+    id: 'slide-7',
+    image: '/assets/aistudio/New_Recording_61_be2a8f89.jpeg',
+    category: 'Singing & Youth Choir',
+    title: 'Harmonies of Hope from Rusizi',
+    subtitle: 'Vocal training and uplifting musical ensemble',
+    caption:
+      'Singing with clarity, harmony, and joy. Our music program develops pitch control, breath training, and heartfelt performance skills.',
+    ageRange: 'Ages 6–15',
+  },
+  {
+    id: 'slide-8',
+    image: '/assets/aistudio/New_Recording_78_59ee1a8e.jpeg',
+    category: 'Holistic Mentorship & Life Skills',
+    title: 'Character, Discipline & Community',
+    subtitle: 'Guiding whole-child development alongside creative arts',
+    caption:
+      'Every artistic discipline is paired with academic monitoring, community service values, and positive role models dedicated to each child’s bright future.',
+    ageRange: 'Ages 5–17',
+  },
+];
+
+export const initialPrograms: Program[] = [
+  {
+    id: 'prog-dance',
+    title: 'Modern & Urban Dance',
+    category: 'Dance',
+    description:
+      'Cultivating rhythm, physical coordination, team synchronization, and choreography. Our dance academy enables young dancers from Rusizi to master Afrobeat, hip-hop, and modern creative dance styles.',
+    image: '/assets/aistudio/New_Recording_14_17ffd186.jpeg',
+    activities: [
+      'Choreography training twice weekly',
+      'Stage presence & rhythm workshops',
+      'Regional festival showcases in Western Province',
+      'Video production & digital performance portfolios',
+    ],
+    achievements: [
+      'Over 45 children mastered advanced group choreography',
+      'Featured at district cultural celebrations & youth festivals',
+      'Formed the renowned New Generation Dance crew',
+    ],
+    schedule: 'Tuesdays & Saturdays, 3:30 PM - 5:30 PM',
+    featured: true,
+  },
+  {
+    id: 'prog-trad-dance',
+    title: 'Traditional Rwandan Dance (Itorero)',
+    category: 'Traditional Dance',
+    description:
+      'Honoring Rwanda’s rich cultural heritage through traditional dance, drumming, and song. Children learn cultural values, grace, discipline, and the patriotic pride of Rwandan traditions.',
+    image: '/assets/aistudio/New_Recording_35_583fbbcd.jpeg',
+    activities: [
+      'Traditional Umushagiriro and Intore dance coaching',
+      'Ingoma (traditional drumming) and rhythm training',
+      'Cultural storytelling and heritage appreciation',
+      'Community Umuganura and civic celebrations',
+    ],
+    achievements: [
+      'Preserved traditional Rwandan folk dance across 30+ young boys and girls',
+      'Handcrafted authentic kitenge and fiber dance regalia',
+      'Performed for local leadership and district cultural showcases',
+    ],
+    schedule: 'Wednesdays & Saturdays, 2:00 PM - 4:00 PM',
+    featured: true,
+  },
+  {
+    id: 'prog-film',
+    title: 'Film & Acting',
+    category: 'Film & Acting',
+    description:
+      'Empowering children to tell their own stories through screen acting, voice projection, script reading, and short film production. We build confidence, poise, and expressive communication.',
+    image: '/assets/aistudio/New_Recording_78_59ee1a8e.jpeg',
+    activities: [
+      'On-camera acting technique & character study',
+      'Script reading, dialogue rehearsal & memory exercises',
+      'Behind-the-scenes basics: directing, sound, and lighting',
+      'Production of community-positive short films & skits',
+    ],
+    achievements: [
+      'Produced 4 youth educational skits on education and youth health',
+      'Trained 25 young actors in confident speech and dramatic expression',
+    ],
+    schedule: 'Fridays & Sundays, 3:00 PM - 5:00 PM',
+    featured: true,
+  },
+  {
+    id: 'prog-fashion',
+    title: 'Fashion & Modeling',
+    category: 'Fashion & Modeling',
+    description:
+      'Fostering self-esteem, posture, and poise through runway walking, garment presentation, and sustainable styling. Youth learn creative design appreciation and confident personal presence.',
+    image: '/assets/aistudio/New_Recording_74_dc1cfdc1.jpeg',
+    activities: [
+      'Runway gait, posture, and balance training',
+      'Creative styling with African kitenge prints and modern wear',
+      'Photography posing and portfolio building',
+      'Confidence-building seminars and etiquette',
+    ],
+    achievements: [
+      'Staged 2 annual Rusizi youth runway showcases',
+      'Empowered girls and boys with strong public speaking and poise',
+    ],
+    schedule: 'Saturdays, 10:00 AM - 12:30 PM',
+    featured: true,
+  },
+  {
+    id: 'prog-singing',
+    title: 'Singing & Vocal Music',
+    category: 'Singing & Music',
+    description:
+      'Nurturing musicality, vocal range, harmonies, and songwriting. Children explore solo and choral performance, recording studio readiness, and inspiring musical expression.',
+    image: '/assets/aistudio/New_Recording_72_391aff38.jpeg',
+    activities: [
+      'Vocal warmups, breathing technique & ear training',
+      'Choir harmonies and solo vocal coaching',
+      'Original songwriting rooted in positive social messages',
+      'Acoustic rehearsals and live stage performance',
+    ],
+    achievements: [
+      'Composed 3 foundation anthems including "From Rusizi to the World"',
+      'Formed youth vocal ensemble performing across Western Province',
+    ],
+    schedule: 'Thursdays & Sundays, 4:00 PM - 6:00 PM',
+    featured: false,
+  },
+  {
+    id: 'prog-talent-dev',
+    title: 'Talent Incubation & Mentorship',
+    category: 'Talent Development',
+    description:
+      'Holistic talent identification, personal development plans, one-on-one coaching, and connecting gifted children with regional and national creative opportunities.',
+    image: '/assets/aistudio/New_Recording_5_d9b9ef4d.jpeg',
+    activities: [
+      'Talent scouting clinics across Rusizi sectors',
+      'Individual progress tracking and artistic mentorship',
+      'Masterclasses with visiting Rwandan and international artists',
+      'Audition preparation for festivals and competitions',
+    ],
+    achievements: [
+      'Scouted and enrolled 120+ gifted children since inception',
+      'Maintained 100% active retention in creative mentorship pathways',
+    ],
+    schedule: 'Flexible weekday mentorship hours',
+    featured: false,
+  },
+  {
+    id: 'prog-edu',
+    title: 'Educational & Life Skills Activities',
+    category: 'Educational Activities',
+    description:
+      'Talent goes hand-in-hand with academic excellence. We provide homework tutoring, English and Kinyarwanda reading clubs, digital literacy basics, and moral education.',
+    image: '/assets/aistudio/New_Recording_47_6a9ce814.jpeg',
+    activities: [
+      'After-school homework assistance & reading corners',
+      'English conversation practice and public speaking',
+      'Child rights, hygiene, and mental wellbeing sessions',
+      'School supply distribution and bursary support',
+    ],
+    achievements: [
+      'Assisted 80+ enrolled children with school materials and tuition support',
+      '94% school attendance rate maintained among foundation members',
+    ],
+    schedule: 'Monday to Thursday, 5:00 PM - 6:30 PM',
+    featured: false,
+  },
+  {
+    id: 'prog-community',
+    title: 'Community Projects & Umuganda',
+    category: 'Community Projects',
+    description:
+      'Instilling civic responsibility and patriotism. Our children and mentors actively participate in monthly Umuganda cleanups, environmental greening, and community solidarity in Rusizi.',
+    image: '/assets/aistudio/New_Recording_2_2317054a.jpeg',
+    activities: [
+      'Youth-led community cleanliness drives and tree planting',
+      'Anti-drug abuse and healthy lifestyle peer campaigns',
+      'Visiting elderly community members and vulnerable families',
+      'Charity street performances for community unity',
+    ],
+    achievements: [
+      'Completed 14 community sanitation and tree planting actions in Rusizi',
+      'Awarded District certificate of appreciation for youth civic leadership',
+    ],
+    schedule: 'Last Saturday of every month (Umuganda)',
+    featured: false,
+  },
+];
+
+export const initialChildren: ChildProfile[] = [
+  {
+    id: 'child-1',
+    publicName: 'Amani K.',
+    age: 14,
+    talentCategory: 'Dance',
+    description:
+      'Passionate Afrobeat and hip-hop lead dancer with remarkable stage charisma and timing. Guides younger dancers through warmup routines.',
+    activities: ['Dance Academy Lead', 'Choreography Assistant'],
+    achievements: ['Won 1st place in Rusizi Youth Cultural Dance showcase 2025'],
+    photo: '/assets/aistudio/New_Recording_8_fc9ac978.jpeg',
+    consentVerified: true,
+    joinYear: 2023,
+  },
+  {
+    id: 'child-2',
+    publicName: 'Honorine M.',
+    age: 11,
+    talentCategory: 'Traditional Dance',
+    description:
+      'Graceful traditional dancer gifted in the Rwandan Umushagiriro dance. Expresses authentic poise and deep cultural storytelling.',
+    activities: ['Itorero Ensemble', 'Cultural Singing'],
+    achievements: ['Lead performer for Western Province Heritage Day'],
+    photo: '/assets/aistudio/New_Recording_35_583fbbcd.jpeg',
+    consentVerified: true,
+    joinYear: 2024,
+  },
+  {
+    id: 'child-3',
+    publicName: 'David U.',
+    age: 15,
+    talentCategory: 'Film & Acting',
+    description:
+      'Charismatic young actor and aspiring filmmaker with expressive vocal range and keen comedic and dramatic storytelling timing.',
+    activities: ['Film Club', 'Scriptwriting', 'Youth Skit Leader'],
+    achievements: ['Starred in RKF anti-drug community short film "Bright Horizon"'],
+    photo: '/assets/aistudio/New_Recording_78_59ee1a8e.jpeg',
+    consentVerified: true,
+    joinYear: 2023,
+  },
+  {
+    id: 'child-4',
+    publicName: 'Divine I.',
+    age: 13,
+    talentCategory: 'Fashion & Modeling',
+    description:
+      'Poised model showcasing traditional and contemporary Rwandan designs with dignity, high self-discipline, and confident stage demeanor.',
+    activities: ['Runway Club', 'Public Speaking'],
+    achievements: ['Featured in the Rusizi Eco-Fashion Exhibition'],
+    photo: '/assets/aistudio/New_Recording_74_dc1cfdc1.jpeg',
+    consentVerified: true,
+    joinYear: 2024,
+  },
+  {
+    id: 'child-5',
+    publicName: 'Cedric B.',
+    age: 16,
+    talentCategory: 'Singing & Music',
+    description:
+      'Vocal soloist and rhythm drummer with clear harmonies and an inspiring ability to connect with live audiences.',
+    activities: ['Vocal Ensemble', 'Drumming Circle'],
+    achievements: ['Co-wrote RKF foundation theme song'],
+    photo: '/assets/aistudio/New_Recording_72_391aff38.jpeg',
+    consentVerified: true,
+    joinYear: 2023,
+  },
+  {
+    id: 'child-6',
+    publicName: 'Gloria N.',
+    age: 9,
+    talentCategory: 'Talent Development',
+    description:
+      'Energetic young talent engaged in early dance and rhythm exploration. Shows exceptional learning agility and bright enthusiasm.',
+    activities: ['Junior Dance Group', 'Creative Arts Reading Club'],
+    achievements: ['Completed Junior Talent Discovery Milestone with honors'],
+    photo: '/assets/aistudio/New_Recording_70_82695bc5.jpeg',
+    consentVerified: true,
+    joinYear: 2025,
+  },
+];
+
+export const initialAnnouncements: Announcement[] = [
+  {
+    id: 'ann-1',
+    title: 'Call for Registrations: 2026 Young Talent Cohort in Rusizi',
+    description:
+      'Rusizi Kids Foundation is now receiving applications for children aged 5 to 17 passionate about dance, acting, singing, modeling, and creative arts. Parents and legal guardians are invited to register online or visit our center.',
+    image: '/assets/aistudio/New_Recording_69_2dab5d6c.jpeg',
+    publicationDate: '2026-03-01',
+    category: 'Recruitment',
+    eventDate: '2026-04-15',
+    registrationLink: '#join',
+    published: true,
+  },
+  {
+    id: 'ann-2',
+    title: 'Upcoming Rusizi Youth Dance & Cultural Showcase',
+    description:
+      'Join us for an electrifying outdoor performance featuring the New Generation Dance Crew, Itorero traditional dancers, and our young musicians at the Rusizi Community grounds. Free entry for all families!',
+    image: '/assets/aistudio/New_Recording_5_d9b9ef4d.jpeg',
+    publicationDate: '2026-03-10',
+    category: 'Upcoming Events',
+    eventDate: '2026-04-26',
+    published: true,
+  },
+  {
+    id: 'ann-3',
+    title: 'Community Clean-Up & Environmental Greening Initiative',
+    description:
+      'In partnership with local authorities, RKF members and youth carried out monthly community service in Rusizi town, demonstrating environmental stewardship and civic pride.',
+    image: '/assets/aistudio/New_Recording_2_2317054a.jpeg',
+    publicationDate: '2026-02-28',
+    category: 'Completed Activities',
+    published: true,
+  },
+  {
+    id: 'ann-4',
+    title: 'Quarterly Parents & Caregivers Meeting',
+    description:
+      'Reviewing our children’s academic progress, artistic milestones, and safeguarding measures. We invite all parents and guardians to discuss the upcoming semester calendar.',
+    image: '/assets/aistudio/New_Recording_47_6a9ce814.jpeg',
+    publicationDate: '2026-02-15',
+    category: 'Parent Announcements',
+    eventDate: '2026-03-29',
+    published: true,
+  },
+];
+
+export const initialDonors: Donor[] = [
+  {
+    id: 'donor-1',
+    name: 'Rusizi Friends of the Arts',
+    photo: '/assets/aistudio/New_Recording_33_8b30aaf5.jpeg',
+    role: 'Official Sponsor',
+    description:
+      'A dedicated collective of local diaspora and community leaders empowering young artists in Western Province.',
+    contribution:
+      'Sponsored traditional kitenge dance costumes, sound speakers, microphones, and healthy rehearsal snacks for 60+ children.',
+    contributionDate: '2026',
+    supportedProjects: ['Modern Dance Costumes', 'Sound & Recording Gear'],
+    websiteUrl: 'https://rusizikidsfoundation.org',
+    featuredHomepage: true,
+    tier: 'Official Sponsor',
+  },
+  {
+    id: 'donor-2',
+    name: 'Rwanda Youth Empowerment Supporters',
+    photo: '/assets/aistudio/New_Recording_47_6a9ce814.jpeg',
+    role: 'Individual Donor',
+    description:
+      'Compassionate benefactors investing directly in academic continuity alongside creative talent development.',
+    contribution:
+      'Funded annual primary & secondary school tuition fees, exercise books, and after-school tutoring materials for 35 children.',
+    contributionDate: '2025–2026',
+    supportedProjects: ['Educational Bursary Fund', 'Homework Learning Hub'],
+    featuredHomepage: true,
+    tier: 'Individual Donor',
+  },
+  {
+    id: 'donor-3',
+    name: 'Global Kigali-Rusizi Bridge Fund',
+    photo: '/assets/aistudio/New_Recording_5_d9b9ef4d.jpeg',
+    role: 'Patron',
+    description:
+      'Supporting regional mobility so rural youth performers can showcase their heritage across Rwanda.',
+    contribution:
+      'Covered bus transport, stage logistics, and meal allowances for RKF children attending regional youth talent festivals.',
+    contributionDate: 'February 2026',
+    supportedProjects: ['Festival Travel Logistical Fund'],
+    featuredHomepage: true,
+    tier: 'Patron',
+  },
+];
+
+export const initialPartners: Partner[] = [
+  {
+    id: 'partner-1',
+    organizationName: 'Rusizi District Youth & Cultural Center',
+    photo: '/assets/aistudio/New_Recording_69_2dab5d6c.jpeg',
+    role: 'Community Partner',
+    description:
+      'Local civic institution fostering safe creative rehearsal spaces and youth civic engagement in Rusizi.',
+    contribution:
+      'Provided safe weekly rehearsal grounds, stage facilities, and co-hosted district Umuganura & Youth Day cultural showcases.',
+    contributionDate: '2024–2026',
+    supportedActivities: ['Rehearsal Venue Space', 'District Event Programming'],
+    websiteUrl: 'https://rusizi.gov.rw',
+    featuredHomepage: true,
+  },
+  {
+    id: 'partner-2',
+    organizationName: 'Western Province Creative Artists Coalition',
+    photo: '/assets/aistudio/New_Recording_76_a54427fb.jpeg',
+    role: 'Community Partner',
+    description:
+      'Collective of Rwandan choreographers, actors, and vocalists mentoring grassroots youth talent.',
+    contribution:
+      'Conducted hands-on film acting clinics, vocal coaching workshops, and regional dance choreography masterclasses.',
+    contributionDate: '2025–2026',
+    supportedActivities: ['Artist Masterclasses', 'Casting Auditions'],
+    featuredHomepage: true,
+  },
+  {
+    id: 'partner-3',
+    organizationName: 'Rwanda National Talent Network',
+    photo: '/assets/aistudio/New_Recording_2_2317054a.jpeg',
+    role: 'Official Sponsor',
+    description:
+      'National arts platform connecting Western Province youth performers to broader cultural stages.',
+    contribution:
+      'Co-sponsored video production coverage, community Umuganda showcase stages, and national festival invitations.',
+    contributionDate: '2026',
+    supportedActivities: ['National Showcase Access', 'Talent Advocacy'],
+    featuredHomepage: true,
+  },
+];
+
+export const initialGallery: GalleryItem[] = [
+  {
+    id: 'gal-1',
+    title: 'Traditional Itorero Dancers in Kitenge Regalia',
+    category: 'Traditional Dance',
+    mediaType: 'image',
+    url: '/assets/aistudio/New_Recording_35_583fbbcd.jpeg',
+    caption: 'Preserving Rwandan heritage with rhythm, brooms, and authentic handmade kitenge costumes.',
+    consentVerified: true,
+    date: '2026-02-18',
+  },
+  {
+    id: 'gal-2',
+    title: 'New Generation Dance Crew Night Performance',
+    category: 'Dance',
+    mediaType: 'image',
+    url: '/assets/aistudio/New_Recording_14_17ffd186.jpeg',
+    caption: 'RKF youth dance ensemble wearing branded foundation shirts after a thrilling street performance.',
+    consentVerified: true,
+    date: '2026-01-20',
+  },
+  {
+    id: 'gal-3',
+    title: 'Sober Generation Outdoor Movement Showcase',
+    category: 'Dance',
+    mediaType: 'image',
+    url: '/assets/aistudio/New_Recording_61_be2a8f89.jpeg',
+    caption: 'Promoting a healthy, positive, drug-free lifestyle through energetic dance and positive youth culture.',
+    consentVerified: true,
+    date: '2026-02-10',
+  },
+  {
+    id: 'gal-4',
+    title: 'Community Cleanliness & Health Action in Rusizi',
+    category: 'Community Projects',
+    mediaType: 'image',
+    url: '/assets/aistudio/New_Recording_2_2317054a.jpeg',
+    caption: 'Youth foundation members participating in volunteer civic sanitation and community solidarity.',
+    consentVerified: true,
+    date: '2026-01-30',
+  },
+  {
+    id: 'gal-5',
+    title: 'Full Foundation Assembly at Rusizi Center',
+    category: 'Events',
+    mediaType: 'image',
+    url: '/assets/aistudio/New_Recording_69_2dab5d6c.jpeg',
+    caption: 'Over 60 registered children and youth gathering for the seasonal talent orientation.',
+    consentVerified: true,
+    date: '2026-02-05',
+  },
+  {
+    id: 'gal-6',
+    title: 'Youth Mentoring & Leadership Session on the Terrace',
+    category: 'Training',
+    mediaType: 'image',
+    url: '/assets/aistudio/New_Recording_78_59ee1a8e.jpeg',
+    caption: 'Mentors discussing character, discipline, and artistic ambitions overlooking the hills of Rusizi.',
+    consentVerified: true,
+    date: '2026-02-14',
+  },
+  {
+    id: 'gal-7',
+    title: 'Creative Runway & Fashion Modeling Group',
+    category: 'Fashion',
+    mediaType: 'image',
+    url: '/assets/aistudio/New_Recording_74_dc1cfdc1.jpeg',
+    caption: 'Young models building self-confidence, stage posture, and creative expression.',
+    consentVerified: true,
+    date: '2026-02-12',
+  },
+  {
+    id: 'gal-8',
+    title: 'Junior Discovery Cohort (Ages 5–11)',
+    category: 'Training',
+    mediaType: 'image',
+    url: '/assets/aistudio/New_Recording_70_82695bc5.jpeg',
+    caption: 'Our youngest talents embarking on their creative development journey in a safe, caring space.',
+    consentVerified: true,
+    date: '2026-02-01',
+  },
+  {
+    id: 'gal-9',
+    title: 'Basketball Court Gathering & Rehearsal Briefing',
+    category: 'Events',
+    mediaType: 'image',
+    url: '/assets/aistudio/New_Recording_5_d9b9ef4d.jpeg',
+    caption: 'Combining sports, teamwork, and performing arts on the community court.',
+    consentVerified: true,
+    date: '2026-01-15',
+  },
+];
+
+export const initialLeadership: LeadershipMember[] = [
+  {
+    id: 'lead-1',
+    name: 'Amissa Bora',
+    role: 'Founder & Executive Director',
+    photo: '/assets/aistudio/New_Recording_78_59ee1a8e.jpeg',
+    bio: 'Leads overall foundation vision, strategic partnerships, and youth talent advocacy in Rusizi District.',
+    email: 'amissabora@gmail.com',
+  },
+  {
+    id: 'lead-2',
+    name: 'Jean Paul N.',
+    role: 'Artistic & Choreography Director',
+    photo: '/assets/aistudio/New_Recording_14_17ffd186.jpeg',
+    bio: 'Directs modern dance ensembles, traditional Itorero rehearsals, and regional stage performances.',
+    email: 'amissabora@gmail.com',
+  },
+  {
+    id: 'lead-3',
+    name: 'Claudine M.',
+    role: 'Child Safeguarding & Welfare Officer',
+    photo: '/assets/aistudio/New_Recording_47_6a9ce814.jpeg',
+    bio: 'Manages parental consent verification, child protection compliance, and school attendance follow-up.',
+    email: 'amissabora@gmail.com',
+  },
+  {
+    id: 'lead-4',
+    name: 'Eric K.',
+    role: 'Film, Music & Media Coordinator',
+    photo: '/assets/aistudio/New_Recording_69_2dab5d6c.jpeg',
+    bio: 'Coaches young screen actors, oversees vocal sessions, and documents foundation outreach projects.',
+    email: 'amissabora@gmail.com',
+  },
+];
