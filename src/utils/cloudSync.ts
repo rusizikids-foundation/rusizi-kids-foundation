@@ -43,10 +43,52 @@ function utf8ToBase64(text: string): string {
   return btoa(binary);
 }
 
+export function computeSiteDataHash(payload: Pick<
+  SiteDataPayload,
+  | 'publishedAt'
+  | 'settings'
+  | 'showcaseSlides'
+  | 'programs'
+  | 'children'
+  | 'announcements'
+  | 'donors'
+  | 'partners'
+  | 'gallery'
+  | 'leadership'
+>): string {
+  const serialized = JSON.stringify({
+    publishedAt: payload.publishedAt || '',
+    settings: payload.settings,
+    showcaseSlides: payload.showcaseSlides,
+    programs: payload.programs,
+    children: payload.children,
+    announcements: payload.announcements,
+    donors: payload.donors,
+    partners: payload.partners,
+    gallery: payload.gallery,
+    leadership: payload.leadership,
+  });
+
+  // Dual 32-bit FNV-1a / DJB2 hash for fast synchronous change detection
+  let h1 = 0x811c9dc5;
+  let h2 = 5381;
+  for (let i = 0; i < serialized.length; i++) {
+    const code = serialized.charCodeAt(i);
+    h1 ^= code;
+    h1 = Math.imul(h1, 0x01000193);
+    h2 = (Math.imul(h2, 33) ^ code) >>> 0;
+  }
+  return `${(h1 >>> 0).toString(16)}:${h2.toString(16)}:${serialized.length}`;
+}
+
 export async function fetchRemoteSiteData(): Promise<SiteDataPayload | null> {
   try {
     const response = await fetch(`/site-data.json?t=${Date.now()}`, {
       cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        Pragma: 'no-cache',
+      },
     });
     if (!response.ok) return null;
     const data = (await response.json()) as Partial<SiteDataPayload>;

@@ -28,6 +28,7 @@ import {
   initialShowcaseSlides,
 } from '../data/initialData';
 import {
+  computeSiteDataHash,
   fetchRemoteSiteData,
   GITHUB_TOKEN_STORAGE_KEY,
   publishSiteDataToGitHub,
@@ -172,6 +173,7 @@ const STORAGE_KEYS = {
   ADMIN_PASS: 'rkf_admin_pass_v1',
   SHOWCASE_SLIDES: 'rkf_slides_v1',
   LAST_SYNCED_AT: 'rkf_last_synced_at_v1',
+  LAST_SERVER_HASH: 'rkf_last_server_hash_v1',
   HAS_UNPUBLISHED: 'rkf_has_unpublished_v1',
 };
 
@@ -542,75 +544,145 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Automatically fetch central public/site-data.json on every visitor device load
+  // Always fetch /site-data.json?t=Date.now() on every page load & mobile bfcache restore,
+  // overwriting any stale localStorage cache whenever the server data has changed.
   useEffect(() => {
     let active = true;
-    fetchRemoteSiteData().then((remote) => {
+
+    const syncFromServer = async () => {
+      const remote = await fetchRemoteSiteData();
       if (!active || !remote) return;
 
-      const localHasEdits = loadStored<boolean>(STORAGE_KEYS.HAS_UNPUBLISHED, false);
-      const localSyncedAt = (() => {
+      const serverHash = computeSiteDataHash(remote);
+      const storedServerHash = (() => {
         try {
-          return localStorage.getItem(STORAGE_KEYS.LAST_SYNCED_AT);
+          return localStorage.getItem(STORAGE_KEYS.LAST_SERVER_HASH);
         } catch {
           return null;
         }
       })();
+      const localHasEdits = loadStored<boolean>(STORAGE_KEYS.HAS_UNPUBLISHED, false);
 
-      const remoteTime = remote.publishedAt ? Date.parse(remote.publishedAt) : 0;
-      const localTime = localSyncedAt ? Date.parse(localSyncedAt) : 0;
-      const remoteIsNewer = remoteTime > 0 && (!localTime || remoteTime > localTime);
+      const nextSettings = normalizeSettings(remote.settings);
+      const nextSlides =
+        Array.isArray(remote.showcaseSlides) && remote.showcaseSlides.length > 0
+          ? normalizeSlides(remote.showcaseSlides)
+          : initialShowcaseSlides;
+      const nextPrograms =
+        Array.isArray(remote.programs) && remote.programs.length > 0
+          ? normalizePrograms(remote.programs)
+          : initialPrograms;
+      const nextChildren =
+        Array.isArray(remote.children) && remote.children.length > 0
+          ? normalizeChildren(remote.children)
+          : initialChildren;
+      const nextAnnouncements =
+        Array.isArray(remote.announcements) && remote.announcements.length > 0
+          ? normalizeAnnouncements(remote.announcements)
+          : initialAnnouncements;
+      const nextDonors =
+        Array.isArray(remote.donors) && remote.donors.length > 0
+          ? normalizeDonors(remote.donors)
+          : initialDonors;
+      const nextPartners =
+        Array.isArray(remote.partners) && remote.partners.length > 0
+          ? normalizePartners(remote.partners)
+          : initialPartners;
+      const nextGallery =
+        Array.isArray(remote.gallery) && remote.gallery.length > 0
+          ? normalizeGallery(remote.gallery)
+          : initialGallery;
+      const nextLeadership =
+        Array.isArray(remote.leadership) && remote.leadership.length > 0
+          ? normalizeLeadership(remote.leadership)
+          : initialLeadership;
 
-      // Visitors without local admin edits always adopt remote site-data.json;
-      // Admins with pending edits only overwrite if a newer cloud publish exists.
-      if (!localHasEdits || remoteIsNewer) {
-        setSettings(normalizeSettings(remote.settings));
-        if (Array.isArray(remote.showcaseSlides) && remote.showcaseSlides.length > 0) {
-          setShowcaseSlides(normalizeSlides(remote.showcaseSlides));
-        }
-        if (Array.isArray(remote.programs) && remote.programs.length > 0) {
-          setPrograms(normalizePrograms(remote.programs));
-        }
-        if (Array.isArray(remote.children) && remote.children.length > 0) {
-          setChildrenList(normalizeChildren(remote.children));
-        }
-        if (Array.isArray(remote.announcements) && remote.announcements.length > 0) {
-          setAnnouncements(normalizeAnnouncements(remote.announcements));
-        }
-        if (Array.isArray(remote.donors) && remote.donors.length > 0) {
-          setDonors(normalizeDonors(remote.donors));
-        }
-        if (Array.isArray(remote.partners) && remote.partners.length > 0) {
-          setPartners(normalizePartners(remote.partners));
-        }
-        if (Array.isArray(remote.gallery) && remote.gallery.length > 0) {
-          setGallery(normalizeGallery(remote.gallery));
-        }
-        if (Array.isArray(remote.leadership) && remote.leadership.length > 0) {
-          setLeadership(normalizeLeadership(remote.leadership));
+      const serverChanged = storedServerHash !== serverHash;
+      const currentCachedHash = computeSiteDataHash({
+        publishedAt: (() => {
+          try {
+            return localStorage.getItem(STORAGE_KEYS.LAST_SYNCED_AT) || '';
+          } catch {
+            return '';
+          }
+        })(),
+        settings: loadStored<WebsiteSettings>(STORAGE_KEYS.SETTINGS, initialSettings),
+        showcaseSlides: loadStored<ShowcaseSlide[]>(
+          STORAGE_KEYS.SHOWCASE_SLIDES,
+          initialShowcaseSlides
+        ),
+        programs: loadStored<Program[]>(STORAGE_KEYS.PROGRAMS, initialPrograms),
+        children: loadStored<ChildProfile[]>(STORAGE_KEYS.CHILDREN, initialChildren),
+        announcements: loadStored<Announcement[]>(
+          STORAGE_KEYS.ANNOUNCEMENTS,
+          initialAnnouncements
+        ),
+        donors: loadStored<Donor[]>(STORAGE_KEYS.DONORS, initialDonors),
+        partners: loadStored<Partner[]>(STORAGE_KEYS.PARTNERS, initialPartners),
+        gallery: loadStored<GalleryItem[]>(STORAGE_KEYS.GALLERY, initialGallery),
+        leadership: loadStored<LeadershipMember[]>(
+          STORAGE_KEYS.LEADERSHIP,
+          initialLeadership
+        ),
+      });
+
+      // Overwrite stale localStorage whenever server data changed OR cached visitor state differs
+      if (serverChanged || (!localHasEdits && currentCachedHash !== serverHash)) {
+        try {
+          localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(nextSettings));
+          localStorage.setItem(STORAGE_KEYS.SHOWCASE_SLIDES, JSON.stringify(nextSlides));
+          localStorage.setItem(STORAGE_KEYS.PROGRAMS, JSON.stringify(nextPrograms));
+          localStorage.setItem(STORAGE_KEYS.CHILDREN, JSON.stringify(nextChildren));
+          localStorage.setItem(STORAGE_KEYS.ANNOUNCEMENTS, JSON.stringify(nextAnnouncements));
+          localStorage.setItem(STORAGE_KEYS.DONORS, JSON.stringify(nextDonors));
+          localStorage.setItem(STORAGE_KEYS.PARTNERS, JSON.stringify(nextPartners));
+          localStorage.setItem(STORAGE_KEYS.GALLERY, JSON.stringify(nextGallery));
+          localStorage.setItem(STORAGE_KEYS.LEADERSHIP, JSON.stringify(nextLeadership));
+          localStorage.setItem(STORAGE_KEYS.LAST_SERVER_HASH, serverHash);
+          localStorage.setItem(STORAGE_KEYS.HAS_UNPUBLISHED, JSON.stringify(false));
+          if (remote.publishedAt) {
+            localStorage.setItem(STORAGE_KEYS.LAST_SYNCED_AT, remote.publishedAt);
+          }
+        } catch {
+          // ignore storage quota errors
         }
 
+        setSettings(nextSettings);
+        setShowcaseSlides(nextSlides);
+        setPrograms(nextPrograms);
+        setChildrenList(nextChildren);
+        setAnnouncements(nextAnnouncements);
+        setDonors(nextDonors);
+        setPartners(nextPartners);
+        setGallery(nextGallery);
+        setLeadership(nextLeadership);
         if (remote.publishedAt) {
           setLastPublishedAt(remote.publishedAt);
-          try {
-            localStorage.setItem(STORAGE_KEYS.LAST_SYNCED_AT, remote.publishedAt);
-          } catch {
-            // ignore
-          }
         }
-        if (remoteIsNewer) {
-          setHasUnpublishedChanges(false);
-          try {
-            localStorage.setItem(STORAGE_KEYS.HAS_UNPUBLISHED, JSON.stringify(false));
-          } catch {
-            // ignore
-          }
-        }
+        setHasUnpublishedChanges(false);
       }
-    });
+    };
+
+    void syncFromServer();
+
+    const handlePageShow = (event: PageTransitionEvent) => {
+      if (event.persisted) {
+        void syncFromServer();
+      }
+    };
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void syncFromServer();
+      }
+    };
+
+    window.addEventListener('pageshow', handlePageShow);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
       active = false;
+      window.removeEventListener('pageshow', handlePageShow);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
 
@@ -1147,6 +1219,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setHasUnpublishedChanges(false);
       try {
         localStorage.setItem(STORAGE_KEYS.LAST_SYNCED_AT, payload.publishedAt);
+        localStorage.setItem(STORAGE_KEYS.LAST_SERVER_HASH, computeSiteDataHash(payload));
         localStorage.setItem(STORAGE_KEYS.HAS_UNPUBLISHED, JSON.stringify(false));
       } catch {
         // ignore
