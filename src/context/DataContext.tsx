@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import {
   PageId,
   WebsiteSettings,
@@ -522,8 +522,142 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     loadStored(STORAGE_KEYS.HAS_UNPUBLISHED, false)
   );
 
+  const autoSyncTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const activePublishPromiseRef = useRef<Promise<{
+    success: boolean;
+    message: string;
+    commitUrl?: string;
+  }> | null>(null);
+  const pendingRevisionRef = useRef<number>(0);
+
+  const latestDataRef = useRef({
+    settings,
+    showcaseSlides,
+    programs,
+    childrenList,
+    announcements,
+    donors,
+    partners,
+    gallery,
+    leadership,
+    githubToken,
+  });
+
+  latestDataRef.current = {
+    settings,
+    showcaseSlides,
+    programs,
+    childrenList,
+    announcements,
+    donors,
+    partners,
+    gallery,
+    leadership,
+    githubToken,
+  };
+
+  useEffect(() => {
+    return () => {
+      if (autoSyncTimerRef.current) {
+        clearTimeout(autoSyncTimerRef.current);
+      }
+    };
+  }, []);
+
+  const executeCloudPublish = async (
+    tokenOverride?: string,
+    isAuto: boolean = false
+  ): Promise<{ success: boolean; message: string; commitUrl?: string }> => {
+    if (autoSyncTimerRef.current) {
+      clearTimeout(autoSyncTimerRef.current);
+      autoSyncTimerRef.current = null;
+    }
+
+    const activeToken = (tokenOverride ?? latestDataRef.current.githubToken).trim();
+    if (!activeToken) {
+      const msg =
+        'Enter your GitHub Sync Token inside Website Settings (Logo, Sync & Security) first.';
+      if (!isAuto) {
+        addToast(msg, 'error');
+      }
+      return { success: false, message: msg };
+    }
+
+    if (activePublishPromiseRef.current) {
+      await activePublishPromiseRef.current.catch(() => undefined);
+    }
+
+    const run = async () => {
+      const startRevision = pendingRevisionRef.current;
+      const snap = latestDataRef.current;
+      const payload: SiteDataPayload = {
+        version: 1,
+        publishedAt: new Date().toISOString(),
+        settings: snap.settings,
+        showcaseSlides: snap.showcaseSlides,
+        programs: snap.programs,
+        children: snap.childrenList,
+        announcements: snap.announcements,
+        donors: snap.donors,
+        partners: snap.partners,
+        gallery: snap.gallery,
+        leadership: snap.leadership,
+      };
+
+      setIsPublishingLive(true);
+      const res = await publishSiteDataToGitHub(payload, activeToken);
+      setIsPublishingLive(false);
+
+      if (res.success) {
+        setLastPublishedAt(payload.publishedAt);
+        try {
+          localStorage.setItem(STORAGE_KEYS.LAST_SYNCED_AT, payload.publishedAt);
+          localStorage.setItem(STORAGE_KEYS.LAST_SERVER_HASH, computeSiteDataHash(payload));
+        } catch {
+          // ignore
+        }
+
+        if (pendingRevisionRef.current === startRevision) {
+          setHasUnpublishedChanges(false);
+          try {
+            localStorage.setItem(STORAGE_KEYS.HAS_UNPUBLISHED, JSON.stringify(false));
+          } catch {
+            // ignore
+          }
+          addToast(
+            isAuto ? 'Auto-Synced Live to All Devices' : res.message,
+            'success'
+          );
+        } else {
+          // Newer edits occurred during commit; batch them cleanly after 2 seconds
+          if (latestDataRef.current.githubToken.trim()) {
+            autoSyncTimerRef.current = setTimeout(() => {
+              void executeCloudPublish(undefined, true);
+            }, 2000);
+          }
+        }
+      } else {
+        addToast(
+          isAuto ? `Auto-Sync paused: ${res.message}` : res.message,
+          'error'
+        );
+      }
+
+      return res;
+    };
+
+    const promise = run().finally(() => {
+      if (activePublishPromiseRef.current === promise) {
+        activePublishPromiseRef.current = null;
+      }
+    });
+    activePublishPromiseRef.current = promise;
+    return promise;
+  };
+
   const setGithubToken = (token: string) => {
     setGithubTokenState(token);
+    latestDataRef.current.githubToken = token;
     try {
       if (token.trim()) {
         localStorage.setItem(GITHUB_TOKEN_STORAGE_KEY, token.trim());
@@ -536,11 +670,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const markLocalChangesPending = () => {
+    pendingRevisionRef.current += 1;
     setHasUnpublishedChanges(true);
     try {
       localStorage.setItem(STORAGE_KEYS.HAS_UNPUBLISHED, JSON.stringify(true));
     } catch {
       // ignore
+    }
+
+    if (latestDataRef.current.githubToken.trim()) {
+      if (autoSyncTimerRef.current) {
+        clearTimeout(autoSyncTimerRef.current);
+      }
+      autoSyncTimerRef.current = setTimeout(() => {
+        void executeCloudPublish(undefined, true);
+      }, 2000);
     }
   };
 
@@ -825,8 +969,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Settings
   const updateSettings = (newSettings: WebsiteSettings) => {
     setSettings(newSettings);
+    latestDataRef.current.settings = newSettings;
     markLocalChangesPending();
-    addToast('Website settings saved locally. Click "Publish Live" to sync globally.', 'success');
+    addToast(
+      latestDataRef.current.githubToken.trim()
+        ? 'Website settings saved'
+        : 'Website settings saved locally. Click "Publish Live" to sync globally.',
+      'success'
+    );
   };
 
   // Showcase Slides CRUD
@@ -1201,35 +1351,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
 
   const publishLiveToAllDevices = async (tokenOverride?: string) => {
-    const activeToken = (tokenOverride ?? githubToken).trim();
-    if (!activeToken) {
-      const msg =
-        'Enter your GitHub Sync Token inside Website Settings (Logo, Sync & Security) first.';
-      addToast(msg, 'error');
-      return { success: false, message: msg };
-    }
-
-    setIsPublishingLive(true);
-    const payload = buildSiteDataPayload();
-    const res = await publishSiteDataToGitHub(payload, activeToken);
-    setIsPublishingLive(false);
-
-    if (res.success) {
-      setLastPublishedAt(payload.publishedAt);
-      setHasUnpublishedChanges(false);
-      try {
-        localStorage.setItem(STORAGE_KEYS.LAST_SYNCED_AT, payload.publishedAt);
-        localStorage.setItem(STORAGE_KEYS.LAST_SERVER_HASH, computeSiteDataHash(payload));
-        localStorage.setItem(STORAGE_KEYS.HAS_UNPUBLISHED, JSON.stringify(false));
-      } catch {
-        // ignore
-      }
-      addToast(res.message, 'success');
-    } else {
-      addToast(res.message, 'error');
-    }
-
-    return res;
+    return executeCloudPublish(tokenOverride, false);
   };
 
   const downloadSiteDataJson = () => {

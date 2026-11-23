@@ -365,9 +365,11 @@ export const AdminDashboard: React.FC = () => {
               )}
               <span>
                 {isPublishingLive
-                  ? 'Publishing...'
+                  ? 'Syncing Live...'
                   : hasUnpublishedChanges
-                  ? 'Publish Live (Unsaved)'
+                  ? tokenInput.trim()
+                    ? 'Auto-Syncing Live...'
+                    : 'Publish Live (Unsaved)'
                   : 'Publish Live to All Devices'}
               </span>
             </button>
@@ -618,10 +620,10 @@ export const AdminDashboard: React.FC = () => {
                 <div className={`${CARD_CLASS} space-y-5 border-2 border-[#D9A62E]/50`}>
                   <div className="flex flex-wrap items-start justify-between gap-4 border-b border-[#D9A62E]/25 pb-4">
                     <div className="space-y-1 max-w-2xl">
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <CloudUpload className="w-4 h-4 text-[#F2C14E]" />
                         <h3 className="text-base font-bold text-[#F9F5F0]">
-                          Global Cloud Sync — Publish Live to All Devices
+                          Global Cloud Sync — Automatic Live Publishing
                         </h3>
                       </div>
                       <p className="text-xs text-[#D6C7B8] leading-relaxed">
@@ -629,11 +631,18 @@ export const AdminDashboard: React.FC = () => {
                         <code className="font-mono text-[#F2C14E] bg-[#120B08] px-1.5 py-0.5 rounded">
                           /{GITHUB_SYNC_CONFIG.path}
                         </code>{' '}
-                        on load. Commit your latest Hero slides, Impact Stats, Staff roster, Programs, Gallery, Donors, and Settings straight to{' '}
+                        on load. Once your GitHub Sync Token is saved below, every Save, Add, Update, or Delete action across the CMS automatically batches and commits live to{' '}
                         <span className="font-mono text-[#F9F5F0]">
                           {GITHUB_SYNC_CONFIG.owner}/{GITHUB_SYNC_CONFIG.repo}
                         </span>{' '}
-                        so Vercel updates all visitors within ~15 seconds.
+                        within 2 seconds so all devices worldwide update automatically.
+                      </p>
+                      <p className="text-[11px] font-semibold text-[#F2C14E]">
+                        {tokenInput.trim()
+                          ? isPublishingLive
+                            ? '● Syncing latest changes to GitHub now...'
+                            : '● Auto-Sync Active: Edits publish automatically in the background (2s debounce).'
+                          : '○ Auto-Sync Inactive: Enter your GitHub Sync Token below to enable automatic publishing.'}
                       </p>
                     </div>
 
