@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "publishedAt": "2026-11-23T18:53:01.380Z",
+  "publishedAt": "2026-11-23T18:54:29.113Z",
   "settings": {
     "foundationName": "Rusizi Kids Foundation",
     "abbreviation": "RKF",
@@ -390,8 +390,153 @@
       "featured": false
     }
   ],
-  "children": [],
-  "announcements": [],
+  "children": [
+    {
+      "id": "child-1",
+      "publicName": "Amani K.",
+      "age": 14,
+      "talentCategory": "Dance",
+      "description": "Passionate Afrobeat and hip-hop lead dancer with remarkable stage charisma and timing. Guides younger dancers through warmup routines.",
+      "activities": [
+        "Dance Academy Lead",
+        "Choreography Assistant"
+      ],
+      "achievements": [
+        "Won 1st place in Rusizi Youth Cultural Dance showcase 2025"
+      ],
+      "photo": "/assets/aistudio/New_Recording_8_fc9ac978.jpeg",
+      "consentVerified": true,
+      "joinYear": 2023
+    },
+    {
+      "id": "child-2",
+      "publicName": "Honorine M.",
+      "age": 11,
+      "talentCategory": "Traditional Dance",
+      "description": "Graceful traditional dancer gifted in the Rwandan Umushagiriro dance. Expresses authentic poise and deep cultural storytelling.",
+      "activities": [
+        "Itorero Ensemble",
+        "Cultural Singing"
+      ],
+      "achievements": [
+        "Lead performer for Western Province Heritage Day"
+      ],
+      "photo": "/assets/aistudio/New_Recording_35_583fbbcd.jpeg",
+      "consentVerified": true,
+      "joinYear": 2024
+    },
+    {
+      "id": "child-3",
+      "publicName": "David U.",
+      "age": 15,
+      "talentCategory": "Film & Acting",
+      "description": "Charismatic young actor and aspiring filmmaker with expressive vocal range and keen comedic and dramatic storytelling timing.",
+      "activities": [
+        "Film Club",
+        "Scriptwriting",
+        "Youth Skit Leader"
+      ],
+      "achievements": [
+        "Starred in RKF anti-drug community short film \"Bright Horizon\""
+      ],
+      "photo": "/assets/aistudio/New_Recording_78_59ee1a8e.jpeg",
+      "consentVerified": true,
+      "joinYear": 2023
+    },
+    {
+      "id": "child-4",
+      "publicName": "Divine I.",
+      "age": 13,
+      "talentCategory": "Fashion & Modeling",
+      "description": "Poised model showcasing traditional and contemporary Rwandan designs with dignity, high self-discipline, and confident stage demeanor.",
+      "activities": [
+        "Runway Club",
+        "Public Speaking"
+      ],
+      "achievements": [
+        "Featured in the Rusizi Eco-Fashion Exhibition"
+      ],
+      "photo": "/assets/aistudio/New_Recording_74_dc1cfdc1.jpeg",
+      "consentVerified": true,
+      "joinYear": 2024
+    },
+    {
+      "id": "child-5",
+      "publicName": "Cedric B.",
+      "age": 16,
+      "talentCategory": "Singing & Music",
+      "description": "Vocal soloist and rhythm drummer with clear harmonies and an inspiring ability to connect with live audiences.",
+      "activities": [
+        "Vocal Ensemble",
+        "Drumming Circle"
+      ],
+      "achievements": [
+        "Co-wrote RKF foundation theme song"
+      ],
+      "photo": "/assets/aistudio/New_Recording_72_391aff38.jpeg",
+      "consentVerified": true,
+      "joinYear": 2023
+    },
+    {
+      "id": "child-6",
+      "publicName": "Gloria N.",
+      "age": 9,
+      "talentCategory": "Talent Development",
+      "description": "Energetic young talent engaged in early dance and rhythm exploration. Shows exceptional learning agility and bright enthusiasm.",
+      "activities": [
+        "Junior Dance Group",
+        "Creative Arts Reading Club"
+      ],
+      "achievements": [
+        "Completed Junior Talent Discovery Milestone with honors"
+      ],
+      "photo": "/assets/aistudio/New_Recording_70_82695bc5.jpeg",
+      "consentVerified": true,
+      "joinYear": 2025
+    }
+  ],
+  "announcements": [
+    {
+      "id": "ann-1",
+      "title": "Call for Registrations: 2026 Young Talent Cohort in Rusizi",
+      "description": "Rusizi Kids Foundation is now receiving applications for children aged 5 to 17 passionate about dance, acting, singing, modeling, and creative arts. Parents and legal guardians are invited to register online or visit our center.",
+      "image": "/assets/aistudio/New_Recording_69_2dab5d6c.jpeg",
+      "publicationDate": "2026-03-01",
+      "category": "Recruitment",
+      "eventDate": "2026-04-15",
+      "registrationLink": "#join",
+      "published": true
+    },
+    {
+      "id": "ann-2",
+      "title": "Upcoming Rusizi Youth Dance & Cultural Showcase",
+      "description": "Join us for an electrifying outdoor performance featuring the New Generation Dance Crew, Itorero traditional dancers, and our young musicians at the Rusizi Community grounds. Free entry for all families!",
+      "image": "/assets/aistudio/New_Recording_5_d9b9ef4d.jpeg",
+      "publicationDate": "2026-03-10",
+      "category": "Upcoming Events",
+      "eventDate": "2026-04-26",
+      "published": true
+    },
+    {
+      "id": "ann-3",
+      "title": "Community Clean-Up & Environmental Greening Initiative",
+      "description": "In partnership with local authorities, RKF members and youth carried out monthly community service in Rusizi town, demonstrating environmental stewardship and civic pride.",
+      "image": "/assets/aistudio/New_Recording_2_2317054a.jpeg",
+      "publicationDate": "2026-02-28",
+      "category": "Completed Activities",
+      "published": true
+    },
+    {
+      "id": "ann-4",
+      "title": "Quarterly Parents & Caregivers Meeting",
+      "description": "Reviewing our children’s academic progress, artistic milestones, and safeguarding measures. We invite all parents and guardians to discuss the upcoming semester calendar.",
+      "image": "/assets/aistudio/New_Recording_47_6a9ce814.jpeg",
+      "publicationDate": "2026-02-15",
+      "category": "Parent Announcements",
+      "eventDate": "2026-03-29",
+      "published": true
+    }
+  ],
   "donors": [],
   "partners": [],
   "gallery": [
