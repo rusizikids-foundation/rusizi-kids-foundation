@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "publishedAt": "2026-11-23T18:40:29.632Z",
+  "publishedAt": "2026-11-23T18:40:45.874Z",
   "settings": {
     "foundationName": "Rusizi Kids Foundation",
     "abbreviation": "RKF",
@@ -433,98 +433,8 @@
       "published": true
     }
   ],
-  "donors": [
-    {
-      "id": "donor-1",
-      "name": "Rusizi Friends of the Arts",
-      "photo": "/assets/aistudio/New_Recording_33_8b30aaf5.jpeg",
-      "role": "Official Sponsor",
-      "description": "A dedicated collective of local diaspora and community leaders empowering young artists in Western Province.",
-      "contribution": "Sponsored traditional kitenge dance costumes, sound speakers, microphones, and healthy rehearsal snacks for 60+ children.",
-      "contributionDate": "2026",
-      "supportedProjects": [
-        "Modern Dance Costumes",
-        "Sound & Recording Gear"
-      ],
-      "websiteUrl": "https://rusizikidsfoundation.org",
-      "featuredHomepage": true,
-      "tier": "Official Sponsor"
-    },
-    {
-      "id": "donor-2",
-      "name": "Rwanda Youth Empowerment Supporters",
-      "photo": "/assets/aistudio/New_Recording_47_6a9ce814.jpeg",
-      "role": "Individual Donor",
-      "description": "Compassionate benefactors investing directly in academic continuity alongside creative talent development.",
-      "contribution": "Funded annual primary & secondary school tuition fees, exercise books, and after-school tutoring materials for 35 children.",
-      "contributionDate": "2025–2026",
-      "supportedProjects": [
-        "Educational Bursary Fund",
-        "Homework Learning Hub"
-      ],
-      "featuredHomepage": true,
-      "tier": "Individual Donor"
-    },
-    {
-      "id": "donor-3",
-      "name": "Global Kigali-Rusizi Bridge Fund",
-      "photo": "/assets/aistudio/New_Recording_5_d9b9ef4d.jpeg",
-      "role": "Patron",
-      "description": "Supporting regional mobility so rural youth performers can showcase their heritage across Rwanda.",
-      "contribution": "Covered bus transport, stage logistics, and meal allowances for RKF children attending regional youth talent festivals.",
-      "contributionDate": "February 2026",
-      "supportedProjects": [
-        "Festival Travel Logistical Fund"
-      ],
-      "featuredHomepage": true,
-      "tier": "Patron"
-    }
-  ],
-  "partners": [
-    {
-      "id": "partner-1",
-      "organizationName": "Rusizi District Youth & Cultural Center",
-      "photo": "/assets/aistudio/New_Recording_69_2dab5d6c.jpeg",
-      "role": "Community Partner",
-      "description": "Local civic institution fostering safe creative rehearsal spaces and youth civic engagement in Rusizi.",
-      "contribution": "Provided safe weekly rehearsal grounds, stage facilities, and co-hosted district Umuganura & Youth Day cultural showcases.",
-      "contributionDate": "2024–2026",
-      "supportedActivities": [
-        "Rehearsal Venue Space",
-        "District Event Programming"
-      ],
-      "websiteUrl": "https://rusizi.gov.rw",
-      "featuredHomepage": true
-    },
-    {
-      "id": "partner-2",
-      "organizationName": "Western Province Creative Artists Coalition",
-      "photo": "/assets/aistudio/New_Recording_76_a54427fb.jpeg",
-      "role": "Community Partner",
-      "description": "Collective of Rwandan choreographers, actors, and vocalists mentoring grassroots youth talent.",
-      "contribution": "Conducted hands-on film acting clinics, vocal coaching workshops, and regional dance choreography masterclasses.",
-      "contributionDate": "2025–2026",
-      "supportedActivities": [
-        "Artist Masterclasses",
-        "Casting Auditions"
-      ],
-      "featuredHomepage": true
-    },
-    {
-      "id": "partner-3",
-      "organizationName": "Rwanda National Talent Network",
-      "photo": "/assets/aistudio/New_Recording_2_2317054a.jpeg",
-      "role": "Official Sponsor",
-      "description": "National arts platform connecting Western Province youth performers to broader cultural stages.",
-      "contribution": "Co-sponsored video production coverage, community Umuganda showcase stages, and national festival invitations.",
-      "contributionDate": "2026",
-      "supportedActivities": [
-        "National Showcase Access",
-        "Talent Advocacy"
-      ],
-      "featuredHomepage": true
-    }
-  ],
+  "donors": [],
+  "partners": [],
   "gallery": [
     {
       "id": "gal-1",
