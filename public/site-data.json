@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "publishedAt": "2026-11-23T18:54:42.300Z",
+  "publishedAt": "2026-11-24T17:56:32.730Z",
   "settings": {
     "foundationName": "Rusizi Kids Foundation",
     "abbreviation": "RKF",
@@ -391,23 +391,6 @@
     }
   ],
   "children": [
-    {
-      "id": "child-1",
-      "publicName": "Amani K.",
-      "age": 14,
-      "talentCategory": "Dance",
-      "description": "Passionate Afrobeat and hip-hop lead dancer with remarkable stage charisma and timing. Guides younger dancers through warmup routines.",
-      "activities": [
-        "Dance Academy Lead",
-        "Choreography Assistant"
-      ],
-      "achievements": [
-        "Won 1st place in Rusizi Youth Cultural Dance showcase 2025"
-      ],
-      "photo": "/assets/aistudio/New_Recording_8_fc9ac978.jpeg",
-      "consentVerified": true,
-      "joinYear": 2023
-    },
     {
       "id": "child-2",
       "publicName": "Honorine M.",
