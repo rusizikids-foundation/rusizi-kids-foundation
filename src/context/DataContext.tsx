@@ -40,6 +40,11 @@ import {
   FALLBACK_PHOTO_URL,
   sanitizeImageUrl,
 } from '../utils/imageFallback';
+import {
+  applyRouteSeoMetadata,
+  getPathForPage,
+  resolveRoute,
+} from '../utils/routing';
 
 interface Toast {
   id: string;
@@ -50,6 +55,8 @@ interface Toast {
 interface DataContextType {
   activePage: PageId;
   setActivePage: (page: PageId) => void;
+  activeSection: string | null;
+  navigateToPath: (path: string) => void;
   selectedProgramId: string | null;
   setSelectedProgramId: (id: string | null) => void;
   
@@ -183,13 +190,88 @@ const STORAGE_KEYS = {
 };
 
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [activePage, setActivePageRaw] = useState<PageId>('home');
+  const initialRoute =
+    typeof window !== 'undefined' ? resolveRoute(window.location.pathname) : resolveRoute('/');
+  const [activePage, setActivePageRaw] = useState<PageId>(() => {
+    if (initialRoute.page === 'admin') {
+      try {
+        const storedAuth = localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH);
+        if (storedAuth && JSON.parse(storedAuth) === true) {
+          return 'admin';
+        }
+      } catch {
+        // fallback to home when unauthenticated
+      }
+      return 'home';
+    }
+    return initialRoute.page;
+  });
+  const [activeSection, setActiveSection] = useState<string | null>(
+    initialRoute.sectionId || null
+  );
   const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
 
-  const setActivePage = (page: PageId) => {
-    setActivePageRaw(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const navigateToPath = (rawPath: string) => {
+    const resolved = resolveRoute(rawPath);
+    const targetPath = resolved.path;
+    if (typeof window !== 'undefined' && window.location.pathname !== targetPath) {
+      window.history.pushState(
+        { page: resolved.page, sectionId: resolved.sectionId || null },
+        '',
+        targetPath
+      );
+    }
+    setActivePageRaw(resolved.page);
+    setActiveSection(resolved.sectionId || null);
+    applyRouteSeoMetadata(targetPath);
+    if (!resolved.sectionId && typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
+
+  const setActivePage = (page: PageId) => {
+    const targetPath = getPathForPage(page);
+    if (typeof window !== 'undefined' && window.location.pathname !== targetPath) {
+      window.history.pushState({ page, sectionId: null }, '', targetPath);
+    }
+    setActivePageRaw(page);
+    setActiveSection(null);
+    applyRouteSeoMetadata(targetPath);
+    if (typeof window !== 'undefined') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    applyRouteSeoMetadata(window.location.pathname);
+
+    const handlePopState = () => {
+      const resolved = resolveRoute(window.location.pathname);
+      if (resolved.page === 'admin') {
+        try {
+          const storedAuth = localStorage.getItem(STORAGE_KEYS.ADMIN_AUTH);
+          if (!(storedAuth && JSON.parse(storedAuth) === true)) {
+            setActivePageRaw('home');
+            setActiveSection(null);
+            applyRouteSeoMetadata('/');
+            return;
+          }
+        } catch {
+          setActivePageRaw('home');
+          setActiveSection(null);
+          applyRouteSeoMetadata('/');
+          return;
+        }
+      }
+      setActivePageRaw(resolved.page);
+      setActiveSection(resolved.sectionId || null);
+      applyRouteSeoMetadata(resolved.path);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   // Safe localStorage helper: returns fallback ONLY if key does not exist or fails to parse
   const loadStored = <T,>(key: string, fallback: T): T => {
@@ -1632,6 +1714,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       value={{
         activePage,
         setActivePage,
+        activeSection,
+        navigateToPath,
         selectedProgramId,
         setSelectedProgramId,
         settings,

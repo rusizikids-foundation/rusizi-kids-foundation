@@ -26,6 +26,7 @@ export const HomePage: React.FC = () => {
   const {
     settings,
     setActivePage,
+    navigateToPath,
     setSelectedProgramId,
     programs,
     children,
@@ -524,13 +525,18 @@ export const HomePage: React.FC = () => {
                 <span>Manage Team</span>
               </button>
             )}
-            <button
-              onClick={() => setActivePage('about')}
+            <a
+              href="/leadership"
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                e.preventDefault();
+                navigateToPath('/leadership');
+              }}
               className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-[#F2C14E] hover:text-[#F9F5F0] transition-colors whitespace-nowrap"
             >
               <span>Full Leadership Roster</span>
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </a>
           </div>
         </div>
 

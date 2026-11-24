@@ -16,8 +16,14 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ onOpenAdminLogin }) => {
-  const { settings, setActivePage, isAdminAuthenticated } = useData();
+  const { settings, setActivePage, navigateToPath, isAdminAuthenticated } = useData();
   const clickTimestampsRef = useRef<number[]>([]);
+
+  const handleRouteLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, path: string) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    navigateToPath(path);
+  };
 
   // Discreet triple-click within 2 seconds opens Super Admin Gateway
   const handleLockClick = () => {
@@ -111,20 +117,22 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdminLogin }) => {
             </h5>
             <ul className="space-y-2.5 text-sm">
               {[
-                { id: 'home' as const, label: 'Home' },
-                { id: 'about' as const, label: 'About Us & Staff' },
-                { id: 'programs' as const, label: 'Our Programs' },
-                { id: 'children' as const, label: 'Our Children' },
-                { id: 'news' as const, label: 'News & Events' },
-                { id: 'gallery' as const, label: 'Media Gallery' },
+                { path: '/', label: 'Home' },
+                { path: '/about', label: 'About Us' },
+                { path: '/leadership', label: 'Leadership & Staff' },
+                { path: '/programs', label: 'Our Programs' },
+                { path: '/children', label: 'Our Children' },
+                { path: '/news', label: 'News & Events' },
+                { path: '/gallery', label: 'Media Gallery' },
               ].map((item) => (
-                <li key={item.id}>
-                  <button
-                    onClick={() => setActivePage(item.id)}
-                    className="text-[#D6C7B8] hover:text-[#F2C14E] transition-colors text-left"
+                <li key={item.path}>
+                  <a
+                    href={item.path}
+                    onClick={(e) => handleRouteLinkClick(e, item.path)}
+                    className="text-[#D6C7B8] hover:text-[#F2C14E] transition-colors text-left inline-block"
                   >
                     {item.label}
-                  </button>
+                  </a>
                 </li>
               ))}
             </ul>
@@ -137,54 +145,60 @@ export const Footer: React.FC<FooterProps> = ({ onOpenAdminLogin }) => {
             </h5>
             <ul className="space-y-2.5 text-sm">
               <li>
-                <button
-                  onClick={() => setActivePage('join')}
+                <a
+                  href="/join"
+                  onClick={(e) => handleRouteLinkClick(e, '/join')}
                   className="text-[#D6C7B8] hover:text-[#F2C14E] transition-colors inline-flex items-center gap-1"
                 >
                   <span>Child Registration</span>
                   <ArrowUpRight className="w-3.5 h-3.5 text-[#D9A62E]" />
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  onClick={() => setActivePage('join')}
+                <a
+                  href="/join"
+                  onClick={(e) => handleRouteLinkClick(e, '/join')}
                   className="text-[#D6C7B8] hover:text-[#F2C14E] transition-colors inline-flex items-center gap-1"
                 >
                   <span>Adult Membership</span>
                   <ArrowUpRight className="w-3.5 h-3.5 text-[#D9A62E]" />
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  onClick={() => setActivePage('donors')}
-                  className="text-[#D6C7B8] hover:text-[#F2C14E] transition-colors"
+                <a
+                  href="/donate"
+                  onClick={(e) => handleRouteLinkClick(e, '/donate')}
+                  className="text-[#D6C7B8] hover:text-[#F2C14E] transition-colors inline-block"
                 >
-                  Donors &amp; Partners
-                </button>
+                  Donate &amp; Partners
+                </a>
               </li>
               <li>
-                <button
-                  onClick={() => setActivePage('contact')}
-                  className="text-[#D6C7B8] hover:text-[#F2C14E] transition-colors"
+                <a
+                  href="/contact"
+                  onClick={(e) => handleRouteLinkClick(e, '/contact')}
+                  className="text-[#D6C7B8] hover:text-[#F2C14E] transition-colors inline-block"
                 >
                   Contact Us
-                </button>
+                </a>
               </li>
               <li className="pt-2 border-t border-[#D9A62E]/20">
-                <button
-                  onClick={() => setActivePage('privacy')}
-                  className="text-[#A89585] hover:text-[#F2C14E] transition-colors text-xs"
+                <a
+                  href="/privacy"
+                  onClick={(e) => handleRouteLinkClick(e, '/privacy')}
+                  className="text-[#A89585] hover:text-[#F2C14E] transition-colors text-xs inline-block"
                 >
                   Child Privacy Policy
-                </button>
+                </a>
               </li>
               <li>
-                <button
-                  onClick={() => setActivePage('terms')}
-                  className="text-[#A89585] hover:text-[#F2C14E] transition-colors text-xs"
+                <a
+                  href="/terms"
+                  onClick={(e) => handleRouteLinkClick(e, '/terms')}
+                  className="text-[#A89585] hover:text-[#F2C14E] transition-colors text-xs inline-block"
                 >
                   Terms &amp; Conditions
-                </button>
+                </a>
               </li>
             </ul>
           </div>

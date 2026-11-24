@@ -24,18 +24,32 @@ import { AdminDashboard } from './pages/AdminDashboard';
 import { CheckCircle2, AlertCircle, Info, X } from 'lucide-react';
 
 const MainContent: React.FC = () => {
-  const { activePage, setActivePage, isAdminAuthenticated, toasts, removeToast } = useData();
+  const { activePage, activeSection, setActivePage, isAdminAuthenticated, toasts, removeToast } =
+    useData();
   const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
 
-  // Scroll to top whenever activePage changes
+  // Scroll to targeted section (e.g. #leadership) or top whenever activePage/activeSection changes
   useEffect(() => {
+    if (activeSection) {
+      const scrollTimer = window.setTimeout(() => {
+        const target = document.getElementById(activeSection);
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+      }, 60);
+      return () => window.clearTimeout(scrollTimer);
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [activePage]);
+  }, [activePage, activeSection]);
 
-  // Secret #admin URL hash trigger
+  // Secret #admin URL hash or direct /admin route trigger
   useEffect(() => {
-    const checkAdminHash = () => {
-      if (window.location.hash.toLowerCase() === '#admin') {
+    const checkAdminRouteOrHash = () => {
+      const isHashAdmin = window.location.hash.toLowerCase() === '#admin';
+      const isPathAdmin = window.location.pathname.replace(/\/+$/, '').toLowerCase() === '/admin';
+      if (isHashAdmin || isPathAdmin) {
         if (isAdminAuthenticated) {
           setActivePage('admin');
         } else {
@@ -44,9 +58,9 @@ const MainContent: React.FC = () => {
       }
     };
 
-    checkAdminHash();
-    window.addEventListener('hashchange', checkAdminHash);
-    return () => window.removeEventListener('hashchange', checkAdminHash);
+    checkAdminRouteOrHash();
+    window.addEventListener('hashchange', checkAdminRouteOrHash);
+    return () => window.removeEventListener('hashchange', checkAdminRouteOrHash);
   }, [isAdminAuthenticated, setActivePage]);
 
   const renderPage = () => {

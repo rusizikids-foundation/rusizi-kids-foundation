@@ -3,6 +3,7 @@ import { useData } from '../context/DataContext';
 import { PageId } from '../types';
 import { Menu, X, ChevronRight, Settings, LogOut, Mail } from 'lucide-react';
 import { FALLBACK_LOGO_URL, handleImageError } from '../utils/imageFallback';
+import { getPathForPage } from '../utils/routing';
 
 export const Navbar: React.FC = () => {
   const {
@@ -31,6 +32,12 @@ export const Navbar: React.FC = () => {
   const handleNavClick = (id: PageId) => {
     setActivePage(id);
     setMobileMenuOpen(false);
+  };
+
+  const handleLinkClick = (e: React.MouseEvent<HTMLAnchorElement>, id: PageId) => {
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+    e.preventDefault();
+    handleNavClick(id);
   };
 
   return (
@@ -91,8 +98,9 @@ export const Navbar: React.FC = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 sm:h-20 gap-6">
           {/* Brand Lockup with Circular Gold RKF Logo */}
-          <button
-            onClick={() => handleNavClick('home')}
+          <a
+            href="/"
+            onClick={(e) => handleLinkClick(e, 'home')}
             className="flex items-center gap-3 text-left shrink-0 group focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D9A62E] rounded-lg"
           >
             <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden border border-[#D9A62E] shadow-[0_0_16px_rgba(217,166,46,0.22)] shrink-0 bg-[#1D120D] group-hover:scale-105 transition-transform duration-200 p-0.5">
@@ -115,7 +123,7 @@ export const Navbar: React.FC = () => {
                 {settings.abbreviation} · Rusizi, Rwanda
               </span>
             </div>
-          </button>
+          </a>
 
           {/* Desktop Navigation Links */}
           <nav
@@ -125,9 +133,10 @@ export const Navbar: React.FC = () => {
             {navLinks.map((link) => {
               const isActive = activePage === link.id;
               return (
-                <button
+                <a
                   key={link.id}
-                  onClick={() => handleNavClick(link.id)}
+                  href={getPathForPage(link.id)}
+                  onClick={(e) => handleLinkClick(e, link.id)}
                   className={`whitespace-nowrap shrink-0 transition-colors py-1.5 relative focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D9A62E] rounded ${
                     isActive
                       ? 'text-[#F2C14E] font-bold'
@@ -138,25 +147,27 @@ export const Navbar: React.FC = () => {
                   {isActive && (
                     <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-[#D9A62E] to-[#F2C14E] rounded-full" />
                   )}
-                </button>
+                </a>
               );
             })}
           </nav>
 
           {/* Action Buttons & Mobile Menu Trigger */}
           <div className="flex items-center gap-2.5 shrink-0">
-            <button
-              onClick={() => handleNavClick('donors')}
+            <a
+              href="/donate"
+              onClick={(e) => handleLinkClick(e, 'donors')}
               className="hidden md:inline-flex items-center justify-center px-4 py-2 text-xs font-bold uppercase tracking-wider text-[#F2C14E] bg-[#1D120D] hover:bg-[#281912] border border-[#D9A62E]/55 rounded-lg transition-colors whitespace-nowrap shrink-0"
             >
               Support Us
-            </button>
-            <button
-              onClick={() => handleNavClick('join')}
+            </a>
+            <a
+              href="/join"
+              onClick={(e) => handleLinkClick(e, 'join')}
               className="hidden sm:inline-flex items-center justify-center px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-[#120B08] bg-gradient-to-r from-[#D9A62E] to-[#F2C14E] hover:brightness-110 rounded-lg shadow-[0_0_16px_rgba(217,166,46,0.28)] transition-all whitespace-nowrap shrink-0"
             >
               Join RKF
-            </button>
+            </a>
 
             <button
               type="button"

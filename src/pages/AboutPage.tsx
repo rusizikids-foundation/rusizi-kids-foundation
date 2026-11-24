@@ -260,7 +260,10 @@ export const AboutPage: React.FC = () => {
       </section>
 
       {/* Staff & Team Section ("Meet Our Dedicated Team") */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 space-y-10">
+      <section
+        id="leadership"
+        className="scroll-mt-24 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 sm:py-20 space-y-10"
+      >
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-[#D9A62E]/25 pb-6">
           <div>
             <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#F2C14E] block mb-1">
