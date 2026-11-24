@@ -78,6 +78,8 @@ export const AdminDashboard: React.FC = () => {
     setActivePage,
     settings,
     updateSettings,
+    deleteImpactStat,
+    deleteCoreValue,
     programs,
     addProgram,
     updateProgram,
@@ -117,8 +119,10 @@ export const AdminDashboard: React.FC = () => {
     deleteContactMessage,
     donorInquiries,
     updateDonorInquiryStatus,
+    deleteDonorInquiry,
     partnershipInquiries,
     updatePartnershipInquiryStatus,
+    deletePartnershipInquiry,
     showcaseSlides,
     addShowcaseSlide,
     updateShowcaseSlide,
@@ -153,6 +157,14 @@ export const AdminDashboard: React.FC = () => {
     null
   );
   const [confirmingReset, setConfirmingReset] = useState(false);
+  const [pendingDelete, setPendingDelete] = useState<{
+    label: string;
+    onConfirm: () => void;
+  } | null>(null);
+
+  const requestDelete = (label: string, onConfirm: () => void) => {
+    setPendingDelete({ label, onConfirm });
+  };
 
   // Handle jump-to-tab from live edit links
   useEffect(() => {
@@ -277,7 +289,7 @@ export const AdminDashboard: React.FC = () => {
       id: 'impact_stats',
       label: 'Impact Stats',
       icon: TrendingUp,
-      badge: 4,
+      badge: (settings.stats || []).length,
     },
     { id: 'about_content', label: 'About Us, Mission & Story', icon: BookOpen, badge: null },
     { id: 'programs', label: 'Talent Programs', icon: Award, badge: programs.length },
@@ -1168,7 +1180,11 @@ export const AdminDashboard: React.FC = () => {
                               </button>
                               <button
                                 type="button"
-                                onClick={() => deleteShowcaseSlide(slide.id)}
+                                onClick={() =>
+                                  requestDelete(slide.title || 'Hero Slide', () =>
+                                    deleteShowcaseSlide(slide.id)
+                                  )
+                                }
                                 className="p-1 text-[#A89585] hover:text-red-400"
                                 title="Delete slide"
                               >
@@ -1193,7 +1209,7 @@ export const AdminDashboard: React.FC = () => {
               </div>
             )}
 
-            {/* 2B. IMPACT STATS TAB (4 CIRCULAR GOLD CARDS) */}
+            {/* 2B. IMPACT STATS TAB */}
             {activeTab === 'impact_stats' && (
               <form onSubmit={handleSaveSettings} className={`${CARD_CLASS} space-y-6`}>
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#D9A62E]/25 pb-4">
@@ -1201,151 +1217,149 @@ export const AdminDashboard: React.FC = () => {
                     <div className="flex items-center gap-2">
                       <TrendingUp className="w-4 h-4 text-[#F2C14E]" />
                       <h3 className="text-base font-bold text-[#F9F5F0]">
-                        Home Page Impact Stats (4 Circular Gold Cards)
+                        Home Page Impact Stats ({(settingsForm.stats || []).length})
                       </h3>
                     </div>
                     <p className="text-xs text-[#A89585] mt-0.5">
-                      Edit the number/value and label text for each of the 4 circular gold stat cards shown on the Home Page.
+                      Edit, add, or permanently delete the circular gold stat cards shown on the Home Page.
                     </p>
                   </div>
-                  <button type="submit" className={GOLD_BTN_CLASS}>
-                    <Check className="w-3.5 h-3.5" />
-                    <span>Save Impact Stats</span>
-                  </button>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newStat = {
+                          id: `stat-${Date.now()}`,
+                          number: '50+',
+                          label: 'New Impact Metric',
+                          highlight: (settingsForm.stats || []).length % 2 === 1,
+                        };
+                        setSettingsForm({
+                          ...settingsForm,
+                          stats: [...(settingsForm.stats || []), newStat],
+                        });
+                      }}
+                      className="px-3.5 py-2 text-xs font-bold text-[#F2C14E] border border-[#D9A62E]/40 hover:border-[#F2C14E] rounded-lg flex items-center gap-1.5 transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add Stat Card</span>
+                    </button>
+                    <button type="submit" className={GOLD_BTN_CLASS}>
+                      <Check className="w-3.5 h-3.5" />
+                      <span>Save Impact Stats</span>
+                    </button>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  {[
-                    {
-                      id: 'stat-1',
-                      fallbackNumber: '120+',
-                      fallbackLabel: 'Children Nurtured',
-                      title: 'Stat Card 1 · Primary Reach',
-                      progress: 92,
-                    },
-                    {
-                      id: 'stat-2',
-                      fallbackNumber: '8',
-                      fallbackLabel: 'Talent Disciplines',
-                      title: 'Stat Card 2 · Programs',
-                      progress: 86,
-                    },
-                    {
-                      id: 'stat-3',
-                      fallbackNumber: '5–17',
-                      fallbackLabel: 'Age Group Focus',
-                      title: 'Stat Card 3 · Youth Age Span',
-                      progress: 88,
-                    },
-                    {
-                      id: 'stat-4',
-                      fallbackNumber: '100%',
-                      fallbackLabel: 'Verified Guardian Consent',
-                      title: 'Stat Card 4 · Safeguarding',
-                      progress: 95,
-                    },
-                  ].map((slot, idx) => {
-                    const currentStats = settingsForm.stats || [];
-                    const stat = currentStats[idx] || {
-                      id: slot.id,
-                      number: slot.fallbackNumber,
-                      label: slot.fallbackLabel,
-                      highlight: idx % 2 === 1,
-                    };
+                {(settingsForm.stats || []).length === 0 ? (
+                  <div className="p-8 rounded-xl border border-dashed border-[#D9A62E]/30 bg-[#120B08] text-center space-y-2">
+                    <p className="text-xs text-[#D6C7B8]">
+                      No impact stat cards are currently configured.
+                    </p>
+                    <p className="text-[11px] text-[#A89585]">
+                      Click &quot;Add Stat Card&quot; above to create one, or &quot;Restore 4 Default Stats&quot; below.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {(settingsForm.stats || []).map((stat, idx) => {
+                      const progress = [92, 86, 88, 95][idx % 4] || 88;
+                      const updateStatField = (field: 'number' | 'label', value: string) => {
+                        const currentStats = [...(settingsForm.stats || [])];
+                        currentStats[idx] = { ...currentStats[idx], [field]: value };
+                        setSettingsForm({ ...settingsForm, stats: currentStats });
+                      };
 
-                    const updateSlot = (field: 'number' | 'label', value: string) => {
-                      const defaults = [
-                        { id: 'stat-1', number: '120+', label: 'Children Nurtured', highlight: false },
-                        { id: 'stat-2', number: '8', label: 'Talent Disciplines', highlight: true },
-                        { id: 'stat-3', number: '5–17', label: 'Age Group Focus', highlight: false },
-                        {
-                          id: 'stat-4',
-                          number: '100%',
-                          label: 'Verified Guardian Consent',
-                          highlight: true,
-                        },
-                      ];
-                      const nextStats = [0, 1, 2, 3].map(
-                        (i) => currentStats[i] || defaults[i]
+                      const radius = 34;
+                      const circumference = 2 * Math.PI * radius;
+                      const strokeDashoffset =
+                        circumference - (progress / 100) * circumference;
+
+                      return (
+                        <div key={stat.id || idx} className={`${INNER_CARD_CLASS} space-y-4`}>
+                          <div className="flex items-center justify-between gap-3 border-b border-[#D9A62E]/20 pb-3">
+                            <div>
+                              <span className="text-[11px] font-bold uppercase tracking-wider text-[#F2C14E] block">
+                                Stat Card {idx + 1}
+                              </span>
+                              <span className="text-xs text-[#A89585]">
+                                Live preview on Home Page
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="relative w-14 h-14 flex items-center justify-center shrink-0">
+                                <svg className="w-14 h-14 -rotate-90" viewBox="0 0 80 80" aria-hidden="true">
+                                  <circle
+                                    cx="40"
+                                    cy="40"
+                                    r={radius}
+                                    stroke="#1D120D"
+                                    strokeWidth="5"
+                                    fill="#120B08"
+                                  />
+                                  <circle
+                                    cx="40"
+                                    cy="40"
+                                    r={radius}
+                                    stroke="#F2C14E"
+                                    strokeWidth="5"
+                                    strokeLinecap="round"
+                                    fill="transparent"
+                                    strokeDasharray={circumference}
+                                    strokeDashoffset={strokeDashoffset}
+                                  />
+                                </svg>
+                                <span className="absolute font-mono tabular-nums text-[11px] font-bold text-[#F2C14E]">
+                                  {stat.number}
+                                </span>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  requestDelete(
+                                    `${stat.number} — ${stat.label}`,
+                                    () => deleteImpactStat(stat.id)
+                                  )
+                                }
+                                className="p-1.5 text-[#A89585] hover:text-red-400 border border-[#D9A62E]/30 rounded bg-[#120B08]"
+                                title="Delete Impact Stat"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div>
+                              <label className={LABEL_CLASS}>Number / Value *</label>
+                              <input
+                                type="text"
+                                required
+                                value={stat.number}
+                                onChange={(e) => updateStatField('number', e.target.value)}
+                                placeholder="e.g. 120+"
+                                className={`${INPUT_CLASS} font-mono font-bold text-sm text-[#F2C14E]`}
+                              />
+                            </div>
+                            <div>
+                              <label className={LABEL_CLASS}>Stat Label Text *</label>
+                              <input
+                                type="text"
+                                required
+                                value={stat.label}
+                                onChange={(e) => updateStatField('label', e.target.value)}
+                                placeholder="e.g. Children Nurtured"
+                                className={`${INPUT_CLASS} uppercase font-semibold`}
+                              />
+                            </div>
+                          </div>
+                        </div>
                       );
-                      nextStats[idx] = { ...nextStats[idx], [field]: value };
-                      setSettingsForm({ ...settingsForm, stats: nextStats });
-                    };
+                    })}
+                  </div>
+                )}
 
-                    const radius = 34;
-                    const circumference = 2 * Math.PI * radius;
-                    const strokeDashoffset =
-                      circumference - (slot.progress / 100) * circumference;
-
-                    return (
-                      <div key={slot.id} className={`${INNER_CARD_CLASS} space-y-4`}>
-                        <div className="flex items-center justify-between gap-4 border-b border-[#D9A62E]/20 pb-3">
-                          <div>
-                            <span className="text-[11px] font-bold uppercase tracking-wider text-[#F2C14E] block">
-                              {slot.title}
-                            </span>
-                            <span className="text-xs text-[#A89585]">
-                              Live preview on Home Page
-                            </span>
-                          </div>
-                          <div className="relative w-16 h-16 flex items-center justify-center shrink-0">
-                            <svg className="w-16 h-16 -rotate-90" viewBox="0 0 80 80" aria-hidden="true">
-                              <circle
-                                cx="40"
-                                cy="40"
-                                r={radius}
-                                stroke="#1D120D"
-                                strokeWidth="5"
-                                fill="#120B08"
-                              />
-                              <circle
-                                cx="40"
-                                cy="40"
-                                r={radius}
-                                stroke="#F2C14E"
-                                strokeWidth="5"
-                                strokeLinecap="round"
-                                fill="transparent"
-                                strokeDasharray={circumference}
-                                strokeDashoffset={strokeDashoffset}
-                              />
-                            </svg>
-                            <span className="absolute font-mono tabular-nums text-xs font-bold text-[#F2C14E]">
-                              {stat.number}
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="space-y-3">
-                          <div>
-                            <label className={LABEL_CLASS}>Number / Value *</label>
-                            <input
-                              type="text"
-                              required
-                              value={stat.number}
-                              onChange={(e) => updateSlot('number', e.target.value)}
-                              placeholder={slot.fallbackNumber}
-                              className={`${INPUT_CLASS} font-mono font-bold text-sm text-[#F2C14E]`}
-                            />
-                          </div>
-                          <div>
-                            <label className={LABEL_CLASS}>Stat Label Text *</label>
-                            <input
-                              type="text"
-                              required
-                              value={stat.label}
-                              onChange={(e) => updateSlot('label', e.target.value)}
-                              placeholder={slot.fallbackLabel}
-                              className={`${INPUT_CLASS} uppercase font-semibold`}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="flex items-center justify-between pt-2 border-t border-[#D9A62E]/25">
+                <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-[#D9A62E]/25">
                   <button
                     type="button"
                     onClick={() =>
@@ -1499,13 +1513,13 @@ export const AdminDashboard: React.FC = () => {
                       <div key={val.id || idx} className={`${INNER_CARD_CLASS} space-y-2 relative`}>
                         <button
                           type="button"
-                          onClick={() => {
-                            const updated = settingsForm.aboutCoreValues.filter(
-                              (_, i) => i !== idx
-                            );
-                            setSettingsForm({ ...settingsForm, aboutCoreValues: updated });
-                          }}
+                          onClick={() =>
+                            requestDelete(val.title || 'Core Value', () =>
+                              deleteCoreValue(val.id)
+                            )
+                          }
                           className="absolute top-2.5 right-2.5 text-[#A89585] hover:text-red-400"
+                          title="Delete core value"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -1627,7 +1641,11 @@ export const AdminDashboard: React.FC = () => {
                             </button>
                             <button
                               type="button"
-                              onClick={() => deleteProgram(prog.id)}
+                              onClick={() =>
+                                requestDelete(prog.title || 'Program', () =>
+                                  deleteProgram(prog.id)
+                                )
+                              }
                               className="p-1 text-[#A89585] hover:text-red-400"
                               title="Delete program"
                             >
@@ -1697,8 +1715,13 @@ export const AdminDashboard: React.FC = () => {
                             </button>
                             <button
                               type="button"
-                              onClick={() => deleteChild(child.id)}
+                              onClick={() =>
+                                requestDelete(child.publicName || 'Child Profile', () =>
+                                  deleteChild(child.id)
+                                )
+                              }
                               className="p-1 text-[#A89585] hover:text-red-400"
+                              title="Delete child profile"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -1782,8 +1805,13 @@ export const AdminDashboard: React.FC = () => {
                         </button>
                         <button
                           type="button"
-                          onClick={() => deleteAnnouncement(ann.id)}
+                          onClick={() =>
+                            requestDelete(ann.title || 'Announcement', () =>
+                              deleteAnnouncement(ann.id)
+                            )
+                          }
                           className="p-1.5 text-[#A89585] hover:text-red-400 border border-[#D9A62E]/30 rounded bg-[#120B08]"
+                          title="Delete announcement"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -2053,7 +2081,9 @@ export const AdminDashboard: React.FC = () => {
                             </button>
                             <button
                               type="button"
-                              onClick={() => deleteDonor(d.id)}
+                              onClick={() =>
+                                requestDelete(d.name || 'Donor', () => deleteDonor(d.id))
+                              }
                               className="p-1.5 text-[#A89585] hover:text-red-400 border border-[#D9A62E]/30 rounded bg-[#120B08]"
                               title="Delete Donor / Sponsor"
                             >
@@ -2145,7 +2175,11 @@ export const AdminDashboard: React.FC = () => {
                             </button>
                             <button
                               type="button"
-                              onClick={() => deletePartner(p.id)}
+                              onClick={() =>
+                                requestDelete(p.organizationName || 'Partner', () =>
+                                  deletePartner(p.id)
+                                )
+                              }
                               className="p-1.5 text-[#A89585] hover:text-red-400 border border-[#D9A62E]/30 rounded bg-[#120B08]"
                               title="Delete Partner"
                             >
@@ -2214,8 +2248,13 @@ export const AdminDashboard: React.FC = () => {
                         </button>
                         <button
                           type="button"
-                          onClick={() => deleteGalleryItem(item.id)}
+                          onClick={() =>
+                            requestDelete(item.title || 'Media Item', () =>
+                              deleteGalleryItem(item.id)
+                            )
+                          }
                           className="text-[#F9F5F0] hover:text-red-400"
+                          title="Delete Media Item"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
@@ -2277,7 +2316,11 @@ export const AdminDashboard: React.FC = () => {
                           </button>
                           <button
                             type="button"
-                            onClick={() => deleteLeadership(lead.id)}
+                            onClick={() =>
+                              requestDelete(lead.name || 'Staff Member', () =>
+                                deleteLeadership(lead.id)
+                              )
+                            }
                             className="text-[11px] text-red-400 hover:underline"
                           >
                             Delete
@@ -2645,8 +2688,13 @@ export const AdminDashboard: React.FC = () => {
                             </select>
                             <button
                               type="button"
-                              onClick={() => deleteChildReg(reg.id)}
+                              onClick={() =>
+                                requestDelete(reg.childName || 'Child Registration', () =>
+                                  deleteChildReg(reg.id)
+                                )
+                              }
                               className="p-1 text-[#A89585] hover:text-red-400"
+                              title="Delete registration"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -2743,8 +2791,13 @@ export const AdminDashboard: React.FC = () => {
                             </select>
                             <button
                               type="button"
-                              onClick={() => deleteAdultMem(mem.id)}
+                              onClick={() =>
+                                requestDelete(mem.applicantName || 'Adult Membership', () =>
+                                  deleteAdultMem(mem.id)
+                                )
+                              }
                               className="p-1 text-[#A89585] hover:text-red-400"
+                              title="Delete membership record"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -2801,8 +2854,13 @@ export const AdminDashboard: React.FC = () => {
                             )}
                             <button
                               type="button"
-                              onClick={() => deleteContactMessage(msg.id)}
+                              onClick={() =>
+                                requestDelete(msg.subject || msg.name || 'Message', () =>
+                                  deleteContactMessage(msg.id)
+                                )
+                              }
                               className="p-1 text-[#A89585] hover:text-red-400"
+                              title="Delete message"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
@@ -2833,20 +2891,34 @@ export const AdminDashboard: React.FC = () => {
                               <span className="text-xs font-bold text-[#F9F5F0]">
                                 {inq.nameOrOrg}
                               </span>
-                              <select
-                                value={inq.status}
-                                onChange={(e) =>
-                                  updateDonorInquiryStatus(
-                                    inq.id,
-                                    e.target.value as 'new' | 'in_review' | 'processed'
-                                  )
-                                }
-                                className="text-[10px] border border-[#D9A62E]/30 rounded px-1.5 py-0.5 bg-[#120B08] text-[#F2C14E]"
-                              >
-                                <option value="new">New</option>
-                                <option value="in_review">In Review</option>
-                                <option value="processed">Processed</option>
-                              </select>
+                              <div className="flex items-center gap-1.5">
+                                <select
+                                  value={inq.status}
+                                  onChange={(e) =>
+                                    updateDonorInquiryStatus(
+                                      inq.id,
+                                      e.target.value as 'new' | 'in_review' | 'processed'
+                                    )
+                                  }
+                                  className="text-[10px] border border-[#D9A62E]/30 rounded px-1.5 py-0.5 bg-[#120B08] text-[#F2C14E]"
+                                >
+                                  <option value="new">New</option>
+                                  <option value="in_review">In Review</option>
+                                  <option value="processed">Processed</option>
+                                </select>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    requestDelete(inq.nameOrOrg || 'Donor Inquiry', () =>
+                                      deleteDonorInquiry(inq.id)
+                                    )
+                                  }
+                                  className="p-1 text-[#A89585] hover:text-red-400"
+                                  title="Delete donor inquiry"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </div>
                             <span className="text-[11px] text-[#F2C14E] block">
                               {inq.supportType} · {inq.email}
@@ -2872,20 +2944,34 @@ export const AdminDashboard: React.FC = () => {
                               <span className="text-xs font-bold text-[#F9F5F0]">
                                 {inq.orgName}
                               </span>
-                              <select
-                                value={inq.status}
-                                onChange={(e) =>
-                                  updatePartnershipInquiryStatus(
-                                    inq.id,
-                                    e.target.value as 'new' | 'in_review' | 'processed'
-                                  )
-                                }
-                                className="text-[10px] border border-[#D9A62E]/30 rounded px-1.5 py-0.5 bg-[#120B08] text-[#F2C14E]"
-                              >
-                                <option value="new">New</option>
-                                <option value="in_review">In Review</option>
-                                <option value="processed">Processed</option>
-                              </select>
+                              <div className="flex items-center gap-1.5">
+                                <select
+                                  value={inq.status}
+                                  onChange={(e) =>
+                                    updatePartnershipInquiryStatus(
+                                      inq.id,
+                                      e.target.value as 'new' | 'in_review' | 'processed'
+                                    )
+                                  }
+                                  className="text-[10px] border border-[#D9A62E]/30 rounded px-1.5 py-0.5 bg-[#120B08] text-[#F2C14E]"
+                                >
+                                  <option value="new">New</option>
+                                  <option value="in_review">In Review</option>
+                                  <option value="processed">Processed</option>
+                                </select>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    requestDelete(inq.orgName || 'Partnership Proposal', () =>
+                                      deletePartnershipInquiry(inq.id)
+                                    )
+                                  }
+                                  className="p-1 text-[#A89585] hover:text-red-400"
+                                  title="Delete partnership proposal"
+                                >
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
                             </div>
                             <span className="text-[11px] text-[#F2C14E] block">
                               {inq.contactPerson} · {inq.proposedPartnership}
@@ -3061,6 +3147,58 @@ export const AdminDashboard: React.FC = () => {
             setEditingPartner(null);
           }}
         />
+      )}
+      {/* MODAL: PERMANENT DELETE CONFIRMATION */}
+      {pendingDelete && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm animate-fade-in"
+          onClick={() => setPendingDelete(null)}
+        >
+          <div
+            className="bg-[#1D120D] text-[#F9F5F0] rounded-2xl max-w-md w-full p-6 shadow-2xl border border-[#D9A62E]/50 space-y-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start gap-3.5">
+              <div className="w-10 h-10 rounded-full bg-red-950/80 border border-red-500/45 flex items-center justify-center shrink-0">
+                <Trash2 className="w-5 h-5 text-red-400" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-base font-bold text-[#F9F5F0]">
+                  Confirm Permanent Deletion
+                </h3>
+                <p className="text-xs text-[#D6C7B8] leading-relaxed">
+                  Are you sure you want to permanently delete this item?
+                </p>
+                {pendingDelete.label && (
+                  <p className="text-xs font-semibold text-[#F2C14E] pt-1 break-words">
+                    &quot;{pendingDelete.label}&quot;
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-[#D9A62E]/25">
+              <button
+                type="button"
+                onClick={() => setPendingDelete(null)}
+                className="px-4 py-2 text-xs font-semibold text-[#D6C7B8] hover:text-[#F9F5F0] border border-[#D9A62E]/30 rounded-lg hover:bg-[#281912] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  pendingDelete.onConfirm();
+                  setPendingDelete(null);
+                }}
+                className="px-4 py-2 text-xs font-bold uppercase tracking-wider bg-red-700 hover:bg-red-600 text-white rounded-lg shadow-md flex items-center gap-1.5 transition-colors"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>Delete Permanently</span>
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

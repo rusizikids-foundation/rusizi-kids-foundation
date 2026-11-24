@@ -73,15 +73,22 @@ export const HomePage: React.FC = () => {
     { id: 'stat-4', number: '100%', label: 'Verified Guardian Consent', progress: 95 },
   ];
 
-  const statsList =
-    settings.stats && settings.stats.length >= 4
-      ? settings.stats.slice(0, 4).map((st, idx) => ({
-          id: st.id,
-          number: st.number,
-          label: st.label,
-          progress: [92, 86, 88, 95][idx] || 88,
-        }))
-      : defaultStats;
+  const rawStats = Array.isArray(settings.stats) ? settings.stats : defaultStats;
+  const statsList = rawStats.map((st, idx) => ({
+    id: st.id || `stat-${idx + 1}`,
+    number: st.number,
+    label: st.label,
+    progress: [92, 86, 88, 95][idx % 4] || 88,
+  }));
+
+  const statsGridCols =
+    statsList.length === 1
+      ? 'grid-cols-1 max-w-xs mx-auto'
+      : statsList.length === 2
+      ? 'grid-cols-2 max-w-lg mx-auto'
+      : statsList.length === 3
+      ? 'grid-cols-1 sm:grid-cols-3 max-w-4xl mx-auto'
+      : 'grid-cols-2 lg:grid-cols-4';
 
   return (
     <div className="bg-[#120B08] text-[#F9F5F0]">
@@ -90,71 +97,79 @@ export const HomePage: React.FC = () => {
         <ChildrenPhotoShowcase variant="hero" />
 
         {/* Circular Gold-Ring Statistics & Impact Counters Row */}
-        <div className="bg-[#1D120D] border-y border-[#D9A62E]/28 py-10 sm:py-12">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            {isAdminAuthenticated && (
-              <div className="flex justify-end mb-4">
-                <button
-                  onClick={() => openAdminTab('impact_stats')}
-                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#F2C14E] bg-[#281912] px-3 py-1.5 rounded-lg border border-[#D9A62E]/40 hover:border-[#F2C14E] transition-colors"
-                >
-                  <Edit3 className="w-3.5 h-3.5" />
-                  <span>Edit Impact Stats</span>
-                </button>
-              </div>
-            )}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-              {statsList.map((st, index) => {
-                const radius = 44;
-                const circumference = 2 * Math.PI * radius;
-                const strokeDashoffset = circumference - (st.progress / 100) * circumference;
-                const gradId = `goldRingGrad-${index}`;
+        {(statsList.length > 0 || isAdminAuthenticated) && (
+          <div className="bg-[#1D120D] border-y border-[#D9A62E]/28 py-10 sm:py-12">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              {isAdminAuthenticated && (
+                <div className="flex justify-end mb-4">
+                  <button
+                    onClick={() => openAdminTab('impact_stats')}
+                    className="inline-flex items-center gap-1.5 text-xs font-bold text-[#F2C14E] bg-[#281912] px-3 py-1.5 rounded-lg border border-[#D9A62E]/40 hover:border-[#F2C14E] transition-colors"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>Edit Impact Stats</span>
+                  </button>
+                </div>
+              )}
+              {statsList.length > 0 ? (
+                <div className={`grid ${statsGridCols} gap-8`}>
+                  {statsList.map((st, index) => {
+                    const radius = 44;
+                    const circumference = 2 * Math.PI * radius;
+                    const strokeDashoffset = circumference - (st.progress / 100) * circumference;
+                    const gradId = `goldRingGrad-${index}`;
 
-                return (
-                  <div key={st.id} className="flex flex-col items-center text-center group">
-                    <div className="relative w-28 h-28 flex items-center justify-center">
-                      <svg className="w-28 h-28 -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
-                        <defs>
-                          <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" stopColor="#D9A62E" />
-                            <stop offset="50%" stopColor="#F2C14E" />
-                            <stop offset="100%" stopColor="#B8861B" />
-                          </linearGradient>
-                        </defs>
-                        <circle
-                          cx="50"
-                          cy="50"
-                          r={radius}
-                          stroke="#281912"
-                          strokeWidth="6"
-                          fill="#120B08"
-                        />
-                        <circle
-                          cx="50"
-                          cy="50"
-                          r={radius}
-                          stroke={`url(#${gradId})`}
-                          strokeWidth="6"
-                          strokeLinecap="round"
-                          fill="transparent"
-                          strokeDasharray={circumference}
-                          strokeDashoffset={strokeDashoffset}
-                          className="transition-all duration-700"
-                        />
-                      </svg>
-                      <span className="absolute font-mono tabular-nums text-xl sm:text-2xl font-bold text-[#F2C14E]">
-                        {st.number}
-                      </span>
-                    </div>
-                    <span className="mt-3 text-xs sm:text-sm font-bold uppercase tracking-[0.14em] text-[#F9F5F0]">
-                      {st.label}
-                    </span>
-                  </div>
-                );
-              })}
+                    return (
+                      <div key={st.id} className="flex flex-col items-center text-center group">
+                        <div className="relative w-28 h-28 flex items-center justify-center">
+                          <svg className="w-28 h-28 -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
+                            <defs>
+                              <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" stopColor="#D9A62E" />
+                                <stop offset="50%" stopColor="#F2C14E" />
+                                <stop offset="100%" stopColor="#B8861B" />
+                              </linearGradient>
+                            </defs>
+                            <circle
+                              cx="50"
+                              cy="50"
+                              r={radius}
+                              stroke="#281912"
+                              strokeWidth="6"
+                              fill="#120B08"
+                            />
+                            <circle
+                              cx="50"
+                              cy="50"
+                              r={radius}
+                              stroke={`url(#${gradId})`}
+                              strokeWidth="6"
+                              strokeLinecap="round"
+                              fill="transparent"
+                              strokeDasharray={circumference}
+                              strokeDashoffset={strokeDashoffset}
+                              className="transition-all duration-700"
+                            />
+                          </svg>
+                          <span className="absolute font-mono tabular-nums text-xl sm:text-2xl font-bold text-[#F2C14E]">
+                            {st.number}
+                          </span>
+                        </div>
+                        <span className="mt-3 text-xs sm:text-sm font-bold uppercase tracking-[0.14em] text-[#F9F5F0]">
+                          {st.label}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-center text-xs text-[#A89585]">
+                  All impact stat cards have been removed. Click &quot;Edit Impact Stats&quot; above to add new ones.
+                </p>
+              )}
             </div>
           </div>
-        </div>
+        )}
       </section>
 
       {/* 2. Four Signature Programs Grid */}

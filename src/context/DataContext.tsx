@@ -55,6 +55,8 @@ interface DataContextType {
   
   settings: WebsiteSettings;
   updateSettings: (settings: WebsiteSettings) => void;
+  deleteImpactStat: (id: string) => void;
+  deleteCoreValue: (id: string) => void;
 
   programs: Program[];
   addProgram: (program: Omit<Program, 'id'>) => void;
@@ -109,10 +111,12 @@ interface DataContextType {
   donorInquiries: DonorInquiry[];
   submitDonorInquiry: (inq: Omit<DonorInquiry, 'id' | 'dateSubmitted' | 'status'>) => boolean;
   updateDonorInquiryStatus: (id: string, status: DonorInquiry['status']) => void;
+  deleteDonorInquiry: (id: string) => void;
 
   partnershipInquiries: PartnershipInquiry[];
   submitPartnershipInquiry: (inq: Omit<PartnershipInquiry, 'id' | 'dateSubmitted' | 'status'>) => boolean;
   updatePartnershipInquiryStatus: (id: string, status: PartnershipInquiry['status']) => void;
+  deletePartnershipInquiry: (id: string) => void;
 
   // Showcase Slides (Full CMS Management)
   showcaseSlides: ShowcaseSlide[];
@@ -173,6 +177,7 @@ const STORAGE_KEYS = {
   ADMIN_PASS: 'rkf_admin_pass_v1',
   SHOWCASE_SLIDES: 'rkf_slides_v1',
   LAST_SYNCED_AT: 'rkf_last_synced_at_v1',
+  LAST_LOCAL_PUBLISH_AT: 'rkf_last_local_publish_at_v1',
   LAST_SERVER_HASH: 'rkf_last_server_hash_v1',
   HAS_UNPUBLISHED: 'rkf_has_unpublished_v1',
 };
@@ -186,13 +191,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Safe localStorage helper
+  // Safe localStorage helper: returns fallback ONLY if key does not exist or fails to parse
   const loadStored = <T,>(key: string, fallback: T): T => {
     try {
       const saved = localStorage.getItem(key);
-      return saved ? JSON.parse(saved) : fallback;
+      return saved !== null ? JSON.parse(saved) : fallback;
     } catch {
       return fallback;
+    }
+  };
+
+  const persistImmediate = (key: string, value: unknown) => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      // ignore storage quota errors
     }
   };
 
@@ -211,22 +224,25 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       merged.aboutHeroImage,
       initialSettings.aboutHeroImage || FALLBACK_MENTORSHIP_URL
     );
+    // Preserve intentional empty arrays ([]) if Admin deleted all items; only fall back if undefined/non-array
+    if (!Array.isArray(merged.stats)) {
+      merged.stats = initialSettings.stats;
+    }
+    if (!Array.isArray(merged.aboutCoreValues)) {
+      merged.aboutCoreValues = initialSettings.aboutCoreValues;
+    }
+    if (!Array.isArray(merged.aboutStoryParagraphs)) {
+      merged.aboutStoryParagraphs = initialSettings.aboutStoryParagraphs;
+    }
+    if (!Array.isArray(merged.officialPhones)) {
+      merged.officialPhones = initialSettings.officialPhones;
+    }
     return merged;
   };
 
   const [settings, setSettings] = useState<WebsiteSettings>(() => {
     const loaded = loadStored<Partial<WebsiteSettings>>(STORAGE_KEYS.SETTINGS, initialSettings);
     const merged = normalizeSettings(loaded);
-    // Ensure nested objects/arrays exist
-    if (!merged.stats || merged.stats.length === 0) {
-      merged.stats = initialSettings.stats;
-    }
-    if (!merged.aboutCoreValues || merged.aboutCoreValues.length === 0) {
-      merged.aboutCoreValues = initialSettings.aboutCoreValues;
-    }
-    if (!merged.aboutStoryParagraphs || merged.aboutStoryParagraphs.length === 0) {
-      merged.aboutStoryParagraphs = initialSettings.aboutStoryParagraphs;
-    }
     if (
       !merged.registrationWhatsAppUrl ||
       merged.registrationWhatsAppUrl.includes('FMzmMgtxMQmGj6ziAeVhMg')
@@ -379,7 +395,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [showcaseSlides, setShowcaseSlides] = useState<ShowcaseSlide[]>(() => {
     const loaded = loadStored<ShowcaseSlide[]>(STORAGE_KEYS.SHOWCASE_SLIDES, initialShowcaseSlides);
-    if (!Array.isArray(loaded) || loaded.length === 0) {
+    if (!Array.isArray(loaded)) {
       return initialShowcaseSlides;
     }
     return normalizeSlides(loaded);
@@ -402,27 +418,33 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAdminTargetTab(tab);
     setActivePage('admin');
   };
-  const [programs, setPrograms] = useState<Program[]>(() =>
-    normalizePrograms(loadStored(STORAGE_KEYS.PROGRAMS, initialPrograms))
-  );
-  const [childrenList, setChildrenList] = useState<ChildProfile[]>(() =>
-    normalizeChildren(loadStored(STORAGE_KEYS.CHILDREN, initialChildren))
-  );
-  const [announcements, setAnnouncements] = useState<Announcement[]>(() =>
-    normalizeAnnouncements(loadStored(STORAGE_KEYS.ANNOUNCEMENTS, initialAnnouncements))
-  );
-  const [donors, setDonors] = useState<Donor[]>(() =>
-    normalizeDonors(loadStored<Donor[]>(STORAGE_KEYS.DONORS, initialDonors))
-  );
-  const [partners, setPartners] = useState<Partner[]>(() =>
-    normalizePartners(loadStored<Partner[]>(STORAGE_KEYS.PARTNERS, initialPartners))
-  );
-  const [gallery, setGallery] = useState<GalleryItem[]>(() =>
-    normalizeGallery(loadStored(STORAGE_KEYS.GALLERY, initialGallery))
-  );
+  const [programs, setPrograms] = useState<Program[]>(() => {
+    const loaded = loadStored<Program[]>(STORAGE_KEYS.PROGRAMS, initialPrograms);
+    return Array.isArray(loaded) ? normalizePrograms(loaded) : initialPrograms;
+  });
+  const [childrenList, setChildrenList] = useState<ChildProfile[]>(() => {
+    const loaded = loadStored<ChildProfile[]>(STORAGE_KEYS.CHILDREN, initialChildren);
+    return Array.isArray(loaded) ? normalizeChildren(loaded) : initialChildren;
+  });
+  const [announcements, setAnnouncements] = useState<Announcement[]>(() => {
+    const loaded = loadStored<Announcement[]>(STORAGE_KEYS.ANNOUNCEMENTS, initialAnnouncements);
+    return Array.isArray(loaded) ? normalizeAnnouncements(loaded) : initialAnnouncements;
+  });
+  const [donors, setDonors] = useState<Donor[]>(() => {
+    const loaded = loadStored<Donor[]>(STORAGE_KEYS.DONORS, initialDonors);
+    return Array.isArray(loaded) ? normalizeDonors(loaded) : initialDonors;
+  });
+  const [partners, setPartners] = useState<Partner[]>(() => {
+    const loaded = loadStored<Partner[]>(STORAGE_KEYS.PARTNERS, initialPartners);
+    return Array.isArray(loaded) ? normalizePartners(loaded) : initialPartners;
+  });
+  const [gallery, setGallery] = useState<GalleryItem[]>(() => {
+    const loaded = loadStored<GalleryItem[]>(STORAGE_KEYS.GALLERY, initialGallery);
+    return Array.isArray(loaded) ? normalizeGallery(loaded) : initialGallery;
+  });
   const [leadership, setLeadership] = useState<LeadershipMember[]>(() => {
     const loaded = loadStored<LeadershipMember[]>(STORAGE_KEYS.LEADERSHIP, initialLeadership);
-    if (!Array.isArray(loaded) || loaded.length === 0) {
+    if (!Array.isArray(loaded)) {
       return initialLeadership;
     }
     const legacyNames = ['Amissa Bora', 'Jean Paul N.', 'Claudine M.', 'Eric K.'];
@@ -566,7 +588,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const executeCloudPublish = async (
     tokenOverride?: string,
-    isAuto: boolean = false
+    isAuto: boolean = false,
+    suppressSuccessToast: boolean = false
   ): Promise<{ success: boolean; message: string; commitUrl?: string }> => {
     if (autoSyncTimerRef.current) {
       clearTimeout(autoSyncTimerRef.current);
@@ -612,6 +635,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLastPublishedAt(payload.publishedAt);
         try {
           localStorage.setItem(STORAGE_KEYS.LAST_SYNCED_AT, payload.publishedAt);
+          localStorage.setItem(STORAGE_KEYS.LAST_LOCAL_PUBLISH_AT, payload.publishedAt);
           localStorage.setItem(STORAGE_KEYS.LAST_SERVER_HASH, computeSiteDataHash(payload));
         } catch {
           // ignore
@@ -624,15 +648,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } catch {
             // ignore
           }
-          addToast(
-            isAuto ? 'Auto-Synced Live to All Devices' : res.message,
-            'success'
-          );
+          if (!suppressSuccessToast) {
+            addToast(
+              isAuto ? 'Auto-Synced Live to All Devices' : res.message,
+              'success'
+            );
+          }
         } else {
           // Newer edits occurred during commit; batch them cleanly after 2 seconds
           if (latestDataRef.current.githubToken.trim()) {
             autoSyncTimerRef.current = setTimeout(() => {
-              void executeCloudPublish(undefined, true);
+              void executeCloudPublish(undefined, true, false);
             }, 2000);
           }
         }
@@ -669,7 +695,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const markLocalChangesPending = () => {
+  const markLocalChangesPending = (immediate: boolean = false, suppressSuccessToast: boolean = false) => {
     pendingRevisionRef.current += 1;
     setHasUnpublishedChanges(true);
     try {
@@ -681,10 +707,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (latestDataRef.current.githubToken.trim()) {
       if (autoSyncTimerRef.current) {
         clearTimeout(autoSyncTimerRef.current);
+        autoSyncTimerRef.current = null;
       }
-      autoSyncTimerRef.current = setTimeout(() => {
-        void executeCloudPublish(undefined, true);
-      }, 2000);
+      if (immediate) {
+        void executeCloudPublish(undefined, true, suppressSuccessToast);
+      } else {
+        autoSyncTimerRef.current = setTimeout(() => {
+          void executeCloudPublish(undefined, true, suppressSuccessToast);
+        }, 2000);
+      }
     }
   };
 
@@ -697,6 +728,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const remote = await fetchRemoteSiteData();
       if (!active || !remote) return;
 
+      // Guard against Vercel/CDN serving a stale pre-deploy site-data.json right after an Admin commit
+      const lastLocalPublishAt = (() => {
+        try {
+          return localStorage.getItem(STORAGE_KEYS.LAST_LOCAL_PUBLISH_AT);
+        } catch {
+          return null;
+        }
+      })();
+      if (lastLocalPublishAt && remote.publishedAt) {
+        const remoteTs = Date.parse(remote.publishedAt);
+        const localPublishTs = Date.parse(lastLocalPublishAt);
+        if (!Number.isNaN(remoteTs) && !Number.isNaN(localPublishTs) && remoteTs < localPublishTs) {
+          return;
+        }
+      }
+
       const serverHash = computeSiteDataHash(remote);
       const storedServerHash = (() => {
         try {
@@ -707,39 +754,32 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       })();
       const localHasEdits = loadStored<boolean>(STORAGE_KEYS.HAS_UNPUBLISHED, false);
 
+      // Never replace intentionally emptied arrays ([]) with default placeholders
       const nextSettings = normalizeSettings(remote.settings);
-      const nextSlides =
-        Array.isArray(remote.showcaseSlides) && remote.showcaseSlides.length > 0
-          ? normalizeSlides(remote.showcaseSlides)
-          : initialShowcaseSlides;
-      const nextPrograms =
-        Array.isArray(remote.programs) && remote.programs.length > 0
-          ? normalizePrograms(remote.programs)
-          : initialPrograms;
-      const nextChildren =
-        Array.isArray(remote.children) && remote.children.length > 0
-          ? normalizeChildren(remote.children)
-          : initialChildren;
-      const nextAnnouncements =
-        Array.isArray(remote.announcements) && remote.announcements.length > 0
-          ? normalizeAnnouncements(remote.announcements)
-          : initialAnnouncements;
-      const nextDonors =
-        Array.isArray(remote.donors) && remote.donors.length > 0
-          ? normalizeDonors(remote.donors)
-          : initialDonors;
-      const nextPartners =
-        Array.isArray(remote.partners) && remote.partners.length > 0
-          ? normalizePartners(remote.partners)
-          : initialPartners;
-      const nextGallery =
-        Array.isArray(remote.gallery) && remote.gallery.length > 0
-          ? normalizeGallery(remote.gallery)
-          : initialGallery;
-      const nextLeadership =
-        Array.isArray(remote.leadership) && remote.leadership.length > 0
-          ? normalizeLeadership(remote.leadership)
-          : initialLeadership;
+      const nextSlides = Array.isArray(remote.showcaseSlides)
+        ? normalizeSlides(remote.showcaseSlides)
+        : initialShowcaseSlides;
+      const nextPrograms = Array.isArray(remote.programs)
+        ? normalizePrograms(remote.programs)
+        : initialPrograms;
+      const nextChildren = Array.isArray(remote.children)
+        ? normalizeChildren(remote.children)
+        : initialChildren;
+      const nextAnnouncements = Array.isArray(remote.announcements)
+        ? normalizeAnnouncements(remote.announcements)
+        : initialAnnouncements;
+      const nextDonors = Array.isArray(remote.donors)
+        ? normalizeDonors(remote.donors)
+        : initialDonors;
+      const nextPartners = Array.isArray(remote.partners)
+        ? normalizePartners(remote.partners)
+        : initialPartners;
+      const nextGallery = Array.isArray(remote.gallery)
+        ? normalizeGallery(remote.gallery)
+        : initialGallery;
+      const nextLeadership = Array.isArray(remote.leadership)
+        ? normalizeLeadership(remote.leadership)
+        : initialLeadership;
 
       const serverChanged = storedServerHash !== serverHash;
       const currentCachedHash = computeSiteDataHash({
@@ -790,6 +830,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } catch {
           // ignore storage quota errors
         }
+
+        latestDataRef.current = {
+          ...latestDataRef.current,
+          settings: nextSettings,
+          showcaseSlides: nextSlides,
+          programs: nextPrograms,
+          childrenList: nextChildren,
+          announcements: nextAnnouncements,
+          donors: nextDonors,
+          partners: nextPartners,
+          gallery: nextGallery,
+          leadership: nextLeadership,
+        };
 
         setSettings(nextSettings);
         setShowcaseSlides(nextSlides);
@@ -968,8 +1021,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Settings
   const updateSettings = (newSettings: WebsiteSettings) => {
-    setSettings(newSettings);
     latestDataRef.current.settings = newSettings;
+    persistImmediate(STORAGE_KEYS.SETTINGS, newSettings);
+    setSettings(newSettings);
     markLocalChangesPending();
     addToast(
       latestDataRef.current.githubToken.trim()
@@ -979,164 +1033,274 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
   };
 
+  const deleteImpactStat = (id: string) => {
+    const current = latestDataRef.current.settings;
+    const nextStats = (current.stats || []).filter((s) => s.id !== id);
+    const nextSettings: WebsiteSettings = { ...current, stats: nextStats };
+    latestDataRef.current.settings = nextSettings;
+    persistImmediate(STORAGE_KEYS.SETTINGS, nextSettings);
+    setSettings(nextSettings);
+    markLocalChangesPending(true, true);
+    addToast('Permanently deleted and synced.', 'success');
+  };
+
+  const deleteCoreValue = (id: string) => {
+    const current = latestDataRef.current.settings;
+    const nextValues = (current.aboutCoreValues || []).filter((v) => v.id !== id);
+    const nextSettings: WebsiteSettings = { ...current, aboutCoreValues: nextValues };
+    latestDataRef.current.settings = nextSettings;
+    persistImmediate(STORAGE_KEYS.SETTINGS, nextSettings);
+    setSettings(nextSettings);
+    markLocalChangesPending(true, true);
+    addToast('Permanently deleted and synced.', 'success');
+  };
+
   // Showcase Slides CRUD
   const addShowcaseSlide = (slide: Omit<ShowcaseSlide, 'id'>) => {
     const id = 'slide-' + Date.now();
-    setShowcaseSlides((prev) => [...prev, { ...slide, id }]);
+    const next = [...latestDataRef.current.showcaseSlides, { ...slide, id }];
+    latestDataRef.current.showcaseSlides = next;
+    persistImmediate(STORAGE_KEYS.SHOWCASE_SLIDES, next);
+    setShowcaseSlides(next);
     markLocalChangesPending();
     addToast('Homepage photo slide added successfully', 'success');
   };
 
   const updateShowcaseSlide = (id: string, updated: Partial<ShowcaseSlide>) => {
-    setShowcaseSlides((prev) => prev.map((s) => (s.id === id ? { ...s, ...updated } : s)));
+    const next = latestDataRef.current.showcaseSlides.map((s) =>
+      s.id === id ? { ...s, ...updated } : s
+    );
+    latestDataRef.current.showcaseSlides = next;
+    persistImmediate(STORAGE_KEYS.SHOWCASE_SLIDES, next);
+    setShowcaseSlides(next);
     markLocalChangesPending();
     addToast('Homepage photo slide updated live', 'success');
   };
 
   const deleteShowcaseSlide = (id: string) => {
-    setShowcaseSlides((prev) => prev.filter((s) => s.id !== id));
-    markLocalChangesPending();
-    addToast('Showcase slide removed', 'info');
+    const next = latestDataRef.current.showcaseSlides.filter((s) => s.id !== id);
+    latestDataRef.current.showcaseSlides = next;
+    persistImmediate(STORAGE_KEYS.SHOWCASE_SLIDES, next);
+    setShowcaseSlides(next);
+    markLocalChangesPending(true, true);
+    addToast('Permanently deleted and synced.', 'success');
   };
 
   // Programs CRUD
   const addProgram = (item: Omit<Program, 'id'>) => {
     const id = 'prog-' + Date.now();
-    setPrograms((prev) => [{ ...item, id }, ...prev]);
+    const next = [{ ...item, id }, ...latestDataRef.current.programs];
+    latestDataRef.current.programs = next;
+    persistImmediate(STORAGE_KEYS.PROGRAMS, next);
+    setPrograms(next);
     markLocalChangesPending();
     addToast('New program created', 'success');
   };
 
   const updateProgram = (id: string, updated: Partial<Program>) => {
-    setPrograms((prev) => prev.map((p) => (p.id === id ? { ...p, ...updated } : p)));
+    const next = latestDataRef.current.programs.map((p) =>
+      p.id === id ? { ...p, ...updated } : p
+    );
+    latestDataRef.current.programs = next;
+    persistImmediate(STORAGE_KEYS.PROGRAMS, next);
+    setPrograms(next);
     markLocalChangesPending();
     addToast('Program updated', 'success');
   };
 
   const deleteProgram = (id: string) => {
-    setPrograms((prev) => prev.filter((p) => p.id !== id));
-    markLocalChangesPending();
-    addToast('Program deleted', 'info');
+    const next = latestDataRef.current.programs.filter((p) => p.id !== id);
+    latestDataRef.current.programs = next;
+    persistImmediate(STORAGE_KEYS.PROGRAMS, next);
+    setPrograms(next);
+    markLocalChangesPending(true, true);
+    addToast('Permanently deleted and synced.', 'success');
   };
 
   // Children Profiles CRUD
   const addChild = (item: Omit<ChildProfile, 'id'>) => {
     const id = 'child-' + Date.now();
-    setChildrenList((prev) => [{ ...item, id }, ...prev]);
+    const next = [{ ...item, id }, ...latestDataRef.current.childrenList];
+    latestDataRef.current.childrenList = next;
+    persistImmediate(STORAGE_KEYS.CHILDREN, next);
+    setChildrenList(next);
     markLocalChangesPending();
     addToast('Child profile added with privacy consent', 'success');
   };
 
   const updateChild = (id: string, updated: Partial<ChildProfile>) => {
-    setChildrenList((prev) => prev.map((c) => (c.id === id ? { ...c, ...updated } : c)));
+    const next = latestDataRef.current.childrenList.map((c) =>
+      c.id === id ? { ...c, ...updated } : c
+    );
+    latestDataRef.current.childrenList = next;
+    persistImmediate(STORAGE_KEYS.CHILDREN, next);
+    setChildrenList(next);
     markLocalChangesPending();
     addToast('Child profile updated', 'success');
   };
 
   const deleteChild = (id: string) => {
-    setChildrenList((prev) => prev.filter((c) => c.id !== id));
-    markLocalChangesPending();
-    addToast('Child profile removed', 'info');
+    const next = latestDataRef.current.childrenList.filter((c) => c.id !== id);
+    latestDataRef.current.childrenList = next;
+    persistImmediate(STORAGE_KEYS.CHILDREN, next);
+    setChildrenList(next);
+    markLocalChangesPending(true, true);
+    addToast('Permanently deleted and synced.', 'success');
   };
 
   // Announcements CRUD
   const addAnnouncement = (item: Omit<Announcement, 'id'>) => {
     const id = 'ann-' + Date.now();
-    setAnnouncements((prev) => [{ ...item, id }, ...prev]);
+    const next = [{ ...item, id }, ...latestDataRef.current.announcements];
+    latestDataRef.current.announcements = next;
+    persistImmediate(STORAGE_KEYS.ANNOUNCEMENTS, next);
+    setAnnouncements(next);
     markLocalChangesPending();
     addToast('Announcement published', 'success');
   };
 
   const updateAnnouncement = (id: string, updated: Partial<Announcement>) => {
-    setAnnouncements((prev) => prev.map((a) => (a.id === id ? { ...a, ...updated } : a)));
+    const next = latestDataRef.current.announcements.map((a) =>
+      a.id === id ? { ...a, ...updated } : a
+    );
+    latestDataRef.current.announcements = next;
+    persistImmediate(STORAGE_KEYS.ANNOUNCEMENTS, next);
+    setAnnouncements(next);
     markLocalChangesPending();
     addToast('Announcement updated', 'success');
   };
 
   const deleteAnnouncement = (id: string) => {
-    setAnnouncements((prev) => prev.filter((a) => a.id !== id));
-    markLocalChangesPending();
-    addToast('Announcement removed', 'info');
+    const next = latestDataRef.current.announcements.filter((a) => a.id !== id);
+    latestDataRef.current.announcements = next;
+    persistImmediate(STORAGE_KEYS.ANNOUNCEMENTS, next);
+    setAnnouncements(next);
+    markLocalChangesPending(true, true);
+    addToast('Permanently deleted and synced.', 'success');
   };
 
   // Donors CRUD
   const addDonor = (item: Omit<Donor, 'id'>) => {
     const id = 'donor-' + Date.now();
-    setDonors((prev) => [{ ...item, id }, ...prev]);
+    const next = [{ ...item, id }, ...latestDataRef.current.donors];
+    latestDataRef.current.donors = next;
+    persistImmediate(STORAGE_KEYS.DONORS, next);
+    setDonors(next);
     markLocalChangesPending();
     addToast('Donor added', 'success');
   };
 
   const updateDonor = (id: string, updated: Partial<Donor>) => {
-    setDonors((prev) => prev.map((d) => (d.id === id ? { ...d, ...updated } : d)));
+    const next = latestDataRef.current.donors.map((d) =>
+      d.id === id ? { ...d, ...updated } : d
+    );
+    latestDataRef.current.donors = next;
+    persistImmediate(STORAGE_KEYS.DONORS, next);
+    setDonors(next);
     markLocalChangesPending();
     addToast('Donor updated', 'success');
   };
 
   const deleteDonor = (id: string) => {
-    setDonors((prev) => prev.filter((d) => d.id !== id));
-    markLocalChangesPending();
-    addToast('Donor removed', 'info');
+    const next = latestDataRef.current.donors.filter((d) => d.id !== id);
+    latestDataRef.current.donors = next;
+    persistImmediate(STORAGE_KEYS.DONORS, next);
+    setDonors(next);
+    markLocalChangesPending(true, true);
+    addToast('Permanently deleted and synced.', 'success');
   };
 
   // Partners CRUD
   const addPartner = (item: Omit<Partner, 'id'>) => {
     const id = 'partner-' + Date.now();
-    setPartners((prev) => [{ ...item, id }, ...prev]);
+    const next = [{ ...item, id }, ...latestDataRef.current.partners];
+    latestDataRef.current.partners = next;
+    persistImmediate(STORAGE_KEYS.PARTNERS, next);
+    setPartners(next);
     markLocalChangesPending();
     addToast('Partner added', 'success');
   };
 
   const updatePartner = (id: string, updated: Partial<Partner>) => {
-    setPartners((prev) => prev.map((p) => (p.id === id ? { ...p, ...updated } : p)));
+    const next = latestDataRef.current.partners.map((p) =>
+      p.id === id ? { ...p, ...updated } : p
+    );
+    latestDataRef.current.partners = next;
+    persistImmediate(STORAGE_KEYS.PARTNERS, next);
+    setPartners(next);
     markLocalChangesPending();
     addToast('Partner updated', 'success');
   };
 
   const deletePartner = (id: string) => {
-    setPartners((prev) => prev.filter((p) => p.id !== id));
-    markLocalChangesPending();
-    addToast('Partner removed', 'info');
+    const next = latestDataRef.current.partners.filter((p) => p.id !== id);
+    latestDataRef.current.partners = next;
+    persistImmediate(STORAGE_KEYS.PARTNERS, next);
+    setPartners(next);
+    markLocalChangesPending(true, true);
+    addToast('Permanently deleted and synced.', 'success');
   };
 
   // Gallery CRUD
   const addGalleryItem = (item: Omit<GalleryItem, 'id'>) => {
     const id = 'gal-' + Date.now();
-    setGallery((prev) => [{ ...item, id }, ...prev]);
+    const next = [{ ...item, id }, ...latestDataRef.current.gallery];
+    latestDataRef.current.gallery = next;
+    persistImmediate(STORAGE_KEYS.GALLERY, next);
+    setGallery(next);
     markLocalChangesPending();
     addToast('Media uploaded to gallery', 'success');
   };
 
   const updateGalleryItem = (id: string, updated: Partial<GalleryItem>) => {
-    setGallery((prev) => prev.map((g) => (g.id === id ? { ...g, ...updated } : g)));
+    const next = latestDataRef.current.gallery.map((g) =>
+      g.id === id ? { ...g, ...updated } : g
+    );
+    latestDataRef.current.gallery = next;
+    persistImmediate(STORAGE_KEYS.GALLERY, next);
+    setGallery(next);
     markLocalChangesPending();
     addToast('Media details updated', 'success');
   };
 
   const deleteGalleryItem = (id: string) => {
-    setGallery((prev) => prev.filter((g) => g.id !== id));
-    markLocalChangesPending();
-    addToast('Media removed', 'info');
+    const next = latestDataRef.current.gallery.filter((g) => g.id !== id);
+    latestDataRef.current.gallery = next;
+    persistImmediate(STORAGE_KEYS.GALLERY, next);
+    setGallery(next);
+    markLocalChangesPending(true, true);
+    addToast('Permanently deleted and synced.', 'success');
   };
 
   // Leadership CRUD
   const addLeadership = (item: Omit<LeadershipMember, 'id'>) => {
     const id = 'lead-' + Date.now();
-    setLeadership((prev) => [...prev, { ...item, id }]);
+    const next = [...latestDataRef.current.leadership, { ...item, id }];
+    latestDataRef.current.leadership = next;
+    persistImmediate(STORAGE_KEYS.LEADERSHIP, next);
+    setLeadership(next);
     markLocalChangesPending();
     addToast('Leadership profile added', 'success');
   };
 
   const updateLeadership = (id: string, updated: Partial<LeadershipMember>) => {
-    setLeadership((prev) => prev.map((l) => (l.id === id ? { ...l, ...updated } : l)));
+    const next = latestDataRef.current.leadership.map((l) =>
+      l.id === id ? { ...l, ...updated } : l
+    );
+    latestDataRef.current.leadership = next;
+    persistImmediate(STORAGE_KEYS.LEADERSHIP, next);
+    setLeadership(next);
     markLocalChangesPending();
     addToast('Leadership profile updated', 'success');
   };
 
   const deleteLeadership = (id: string) => {
-    setLeadership((prev) => prev.filter((l) => l.id !== id));
-    markLocalChangesPending();
-    addToast('Profile removed', 'info');
+    const next = latestDataRef.current.leadership.filter((l) => l.id !== id);
+    latestDataRef.current.leadership = next;
+    persistImmediate(STORAGE_KEYS.LEADERSHIP, next);
+    setLeadership(next);
+    markLocalChangesPending(true, true);
+    addToast('Permanently deleted and synced.', 'success');
   };
 
   // Form Submissions
@@ -1149,19 +1313,31 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       dateSubmitted,
       status: 'pending',
     };
-    setChildRegistrations((prev) => [newRecord, ...prev]);
+    setChildRegistrations((prev) => {
+      const next = [newRecord, ...prev];
+      persistImmediate(STORAGE_KEYS.CHILD_REGS, next);
+      return next;
+    });
     addToast('Registration submitted successfully! Our team will contact the caregiver.', 'success');
     return true;
   };
 
   const updateChildRegStatus = (id: string, status: ChildRegistration['status']) => {
-    setChildRegistrations((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+    setChildRegistrations((prev) => {
+      const next = prev.map((r) => (r.id === id ? { ...r, status } : r));
+      persistImmediate(STORAGE_KEYS.CHILD_REGS, next);
+      return next;
+    });
     addToast(`Registration status set to ${status}`, 'info');
   };
 
   const deleteChildReg = (id: string) => {
-    setChildRegistrations((prev) => prev.filter((r) => r.id !== id));
-    addToast('Registration record deleted', 'info');
+    setChildRegistrations((prev) => {
+      const next = prev.filter((r) => r.id !== id);
+      persistImmediate(STORAGE_KEYS.CHILD_REGS, next);
+      return next;
+    });
+    addToast('Permanently deleted and synced.', 'success');
   };
 
   const submitAdultMembership = (mem: Omit<AdultMembership, 'id' | 'dateSubmitted' | 'status'>) => {
@@ -1173,19 +1349,31 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       dateSubmitted,
       status: 'pending',
     };
-    setAdultMemberships((prev) => [newRecord, ...prev]);
+    setAdultMemberships((prev) => {
+      const next = [newRecord, ...prev];
+      persistImmediate(STORAGE_KEYS.ADULT_MEMS, next);
+      return next;
+    });
     addToast('Membership application submitted! Our coordinator will review your application.', 'success');
     return true;
   };
 
   const updateAdultMemStatus = (id: string, status: AdultMembership['status']) => {
-    setAdultMemberships((prev) => prev.map((m) => (m.id === id ? { ...m, status } : m)));
+    setAdultMemberships((prev) => {
+      const next = prev.map((m) => (m.id === id ? { ...m, status } : m));
+      persistImmediate(STORAGE_KEYS.ADULT_MEMS, next);
+      return next;
+    });
     addToast(`Membership status updated to ${status}`, 'info');
   };
 
   const deleteAdultMem = (id: string) => {
-    setAdultMemberships((prev) => prev.filter((m) => m.id !== id));
-    addToast('Membership record removed', 'info');
+    setAdultMemberships((prev) => {
+      const next = prev.filter((m) => m.id !== id);
+      persistImmediate(STORAGE_KEYS.ADULT_MEMS, next);
+      return next;
+    });
+    addToast('Permanently deleted and synced.', 'success');
   };
 
   const submitContactMessage = (msg: Omit<ContactMessage, 'id' | 'dateSubmitted' | 'read'>) => {
@@ -1197,18 +1385,30 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       dateSubmitted,
       read: false,
     };
-    setContactMessages((prev) => [newRecord, ...prev]);
+    setContactMessages((prev) => {
+      const next = [newRecord, ...prev];
+      persistImmediate(STORAGE_KEYS.CONTACT_MSGS, next);
+      return next;
+    });
     addToast('Thank you! Your message has been sent to Rusizi Kids Foundation.', 'success');
     return true;
   };
 
   const markContactRead = (id: string) => {
-    setContactMessages((prev) => prev.map((m) => (m.id === id ? { ...m, read: true } : m)));
+    setContactMessages((prev) => {
+      const next = prev.map((m) => (m.id === id ? { ...m, read: true } : m));
+      persistImmediate(STORAGE_KEYS.CONTACT_MSGS, next);
+      return next;
+    });
   };
 
   const deleteContactMessage = (id: string) => {
-    setContactMessages((prev) => prev.filter((m) => m.id !== id));
-    addToast('Message removed', 'info');
+    setContactMessages((prev) => {
+      const next = prev.filter((m) => m.id !== id);
+      persistImmediate(STORAGE_KEYS.CONTACT_MSGS, next);
+      return next;
+    });
+    addToast('Permanently deleted and synced.', 'success');
   };
 
   const submitDonorInquiry = (inq: Omit<DonorInquiry, 'id' | 'dateSubmitted' | 'status'>) => {
@@ -1220,13 +1420,30 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       dateSubmitted,
       status: 'new',
     };
-    setDonorInquiries((prev) => [newRecord, ...prev]);
+    setDonorInquiries((prev) => {
+      const next = [newRecord, ...prev];
+      persistImmediate(STORAGE_KEYS.DONOR_INQS, next);
+      return next;
+    });
     addToast('Thank you for your generous inquiry! Our director will get in touch.', 'success');
     return true;
   };
 
   const updateDonorInquiryStatus = (id: string, status: DonorInquiry['status']) => {
-    setDonorInquiries((prev) => prev.map((d) => (d.id === id ? { ...d, status } : d)));
+    setDonorInquiries((prev) => {
+      const next = prev.map((d) => (d.id === id ? { ...d, status } : d));
+      persistImmediate(STORAGE_KEYS.DONOR_INQS, next);
+      return next;
+    });
+  };
+
+  const deleteDonorInquiry = (id: string) => {
+    setDonorInquiries((prev) => {
+      const next = prev.filter((d) => d.id !== id);
+      persistImmediate(STORAGE_KEYS.DONOR_INQS, next);
+      return next;
+    });
+    addToast('Permanently deleted and synced.', 'success');
   };
 
   const submitPartnershipInquiry = (inq: Omit<PartnershipInquiry, 'id' | 'dateSubmitted' | 'status'>) => {
@@ -1238,13 +1455,30 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       dateSubmitted,
       status: 'new',
     };
-    setPartnershipInquiries((prev) => [newRecord, ...prev]);
+    setPartnershipInquiries((prev) => {
+      const next = [newRecord, ...prev];
+      persistImmediate(STORAGE_KEYS.PARTNER_INQS, next);
+      return next;
+    });
     addToast('Partnership proposal received! We look forward to collaborating.', 'success');
     return true;
   };
 
   const updatePartnershipInquiryStatus = (id: string, status: PartnershipInquiry['status']) => {
-    setPartnershipInquiries((prev) => prev.map((p) => (p.id === id ? { ...p, status } : p)));
+    setPartnershipInquiries((prev) => {
+      const next = prev.map((p) => (p.id === id ? { ...p, status } : p));
+      persistImmediate(STORAGE_KEYS.PARTNER_INQS, next);
+      return next;
+    });
+  };
+
+  const deletePartnershipInquiry = (id: string) => {
+    setPartnershipInquiries((prev) => {
+      const next = prev.filter((p) => p.id !== id);
+      persistImmediate(STORAGE_KEYS.PARTNER_INQS, next);
+      return next;
+    });
+    addToast('Permanently deleted and synced.', 'success');
   };
 
   // Admin authentication (Uses foundation official email: amissabora@gmail.com)
@@ -1368,6 +1602,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const resetAllData = () => {
     localStorage.clear();
+    latestDataRef.current = {
+      ...latestDataRef.current,
+      settings: initialSettings,
+      showcaseSlides: initialShowcaseSlides,
+      programs: initialPrograms,
+      childrenList: initialChildren,
+      announcements: initialAnnouncements,
+      donors: initialDonors,
+      partners: initialPartners,
+      gallery: initialGallery,
+      leadership: initialLeadership,
+    };
     setSettings(initialSettings);
     setShowcaseSlides(initialShowcaseSlides);
     setPrograms(initialPrograms);
@@ -1390,6 +1636,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSelectedProgramId,
         settings,
         updateSettings,
+        deleteImpactStat,
+        deleteCoreValue,
         programs,
         addProgram,
         updateProgram,
@@ -1433,9 +1681,11 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         donorInquiries,
         submitDonorInquiry,
         updateDonorInquiryStatus,
+        deleteDonorInquiry,
         partnershipInquiries,
         submitPartnershipInquiry,
         updatePartnershipInquiryStatus,
+        deletePartnershipInquiry,
         showcaseSlides,
         addShowcaseSlide,
         updateShowcaseSlide,

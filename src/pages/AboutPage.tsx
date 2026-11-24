@@ -7,45 +7,43 @@ import { FALLBACK_MENTORSHIP_URL, handleImageError } from '../utils/imageFallbac
 export const AboutPage: React.FC = () => {
   const { settings, leadership, setActivePage, isAdminAuthenticated, openAdminTab } = useData();
 
-  const coreValues =
-    settings.aboutCoreValues && settings.aboutCoreValues.length > 0
-      ? settings.aboutCoreValues
-      : [
-          {
-            id: '1',
-            title: 'Talent Empowerment',
-            desc: 'Believing in the boundless artistic and intellectual potential of every child from Rusizi, regardless of socioeconomic background.',
-          },
-          {
-            id: '2',
-            title: 'Child Safeguarding & Dignity',
-            desc: 'Ensuring zero tolerance for abuse, verified parental consent for all public appearances, and safe emotional and physical spaces.',
-          },
-          {
-            id: '3',
-            title: 'Rwandan Cultural Heritage',
-            desc: 'Preserving Itorero traditional dances, storytelling, drumming, and patriotic values as an anchor of identity.',
-          },
-          {
-            id: '4',
-            title: 'Academic & Talent Synergy',
-            desc: 'Requiring all enrolled children to attend school, with after-school tutoring and book supplies provided by our partners.',
-          },
-          {
-            id: '5',
-            title: 'Civic Responsibility (Umuganda)',
-            desc: 'Instilling community solidarity, hygiene, environmental tree planting, and positive peer leadership across Rusizi.',
-          },
-        ];
+  const coreValues = Array.isArray(settings.aboutCoreValues)
+    ? settings.aboutCoreValues
+    : [
+        {
+          id: '1',
+          title: 'Talent Empowerment',
+          desc: 'Believing in the boundless artistic and intellectual potential of every child from Rusizi, regardless of socioeconomic background.',
+        },
+        {
+          id: '2',
+          title: 'Child Safeguarding & Dignity',
+          desc: 'Ensuring zero tolerance for abuse, verified parental consent for all public appearances, and safe emotional and physical spaces.',
+        },
+        {
+          id: '3',
+          title: 'Rwandan Cultural Heritage',
+          desc: 'Preserving Itorero traditional dances, storytelling, drumming, and patriotic values as an anchor of identity.',
+        },
+        {
+          id: '4',
+          title: 'Academic & Talent Synergy',
+          desc: 'Requiring all enrolled children to attend school, with after-school tutoring and book supplies provided by our partners.',
+        },
+        {
+          id: '5',
+          title: 'Civic Responsibility (Umuganda)',
+          desc: 'Instilling community solidarity, hygiene, environmental tree planting, and positive peer leadership across Rusizi.',
+        },
+      ];
 
-  const storyParagraphs =
-    settings.aboutStoryParagraphs && settings.aboutStoryParagraphs.length > 0
-      ? settings.aboutStoryParagraphs
-      : [
-          'Rusizi District in the Western Province of Rwanda is home to vibrant, spirited young minds full of natural musicality, physical agility, and expressive emotion. Yet, far from the capital city of Kigali, many talented children lacked structured rehearsal spaces, costumes, artistic mentors, and protective guidance.',
-          'Rusizi Kids Foundation was established to change that reality. By creating a warm, safe community sanctuary, we invited children aged 5 to 17 to discover their artistic voice. Whether mastering modern Afrobeat synchronization, preserving ancient Rwandan Itorero dance with traditional broom regalia, or acting in short films, each child is provided a structured path to thrive.',
-          'We do not view artistic training in isolation. Every participant must be enrolled in school, with our coordinators monitoring attendance and academic effort. Through regular community cleaning actions (Umuganda) and anti-drug peer campaigns, our children grow into responsible citizens who lead by example.',
-        ];
+  const storyParagraphs = Array.isArray(settings.aboutStoryParagraphs)
+    ? settings.aboutStoryParagraphs
+    : [
+        'Rusizi District in the Western Province of Rwanda is home to vibrant, spirited young minds full of natural musicality, physical agility, and expressive emotion. Yet, far from the capital city of Kigali, many talented children lacked structured rehearsal spaces, costumes, artistic mentors, and protective guidance.',
+        'Rusizi Kids Foundation was established to change that reality. By creating a warm, safe community sanctuary, we invited children aged 5 to 17 to discover their artistic voice. Whether mastering modern Afrobeat synchronization, preserving ancient Rwandan Itorero dance with traditional broom regalia, or acting in short films, each child is provided a structured path to thrive.',
+        'We do not view artistic training in isolation. Every participant must be enrolled in school, with our coordinators monitoring attendance and academic effort. Through regular community cleaning actions (Umuganda) and anti-drug peer campaigns, our children grow into responsible citizens who lead by example.',
+      ];
 
   const keyAchievements = [
     {
