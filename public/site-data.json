@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "publishedAt": "2026-11-24T17:57:53.207Z",
+  "publishedAt": "2026-11-25T18:28:46.176Z",
   "settings": {
     "foundationName": "Rusizi Kids Foundation",
     "abbreviation": "RKF",
@@ -392,17 +392,6 @@
   ],
   "children": [],
   "announcements": [
-    {
-      "id": "ann-1",
-      "title": "Call for Registrations: 2026 Young Talent Cohort in Rusizi",
-      "description": "Rusizi Kids Foundation is now receiving applications for children aged 5 to 17 passionate about dance, acting, singing, modeling, and creative arts. Parents and legal guardians are invited to register online or visit our center.",
-      "image": "/assets/aistudio/New_Recording_69_2dab5d6c.jpeg",
-      "publicationDate": "2026-03-01",
-      "category": "Recruitment",
-      "eventDate": "2026-04-15",
-      "registrationLink": "#join",
-      "published": true
-    },
     {
       "id": "ann-2",
       "title": "Upcoming Rusizi Youth Dance & Cultural Showcase",
