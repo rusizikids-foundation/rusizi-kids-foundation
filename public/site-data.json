@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "publishedAt": "2026-11-25T18:28:46.176Z",
+  "publishedAt": "2026-11-25T18:28:50.723Z",
   "settings": {
     "foundationName": "Rusizi Kids Foundation",
     "abbreviation": "RKF",
@@ -392,25 +392,6 @@
   ],
   "children": [],
   "announcements": [
-    {
-      "id": "ann-2",
-      "title": "Upcoming Rusizi Youth Dance & Cultural Showcase",
-      "description": "Join us for an electrifying outdoor performance featuring the New Generation Dance Crew, Itorero traditional dancers, and our young musicians at the Rusizi Community grounds. Free entry for all families!",
-      "image": "/assets/aistudio/New_Recording_5_d9b9ef4d.jpeg",
-      "publicationDate": "2026-03-10",
-      "category": "Upcoming Events",
-      "eventDate": "2026-04-26",
-      "published": true
-    },
-    {
-      "id": "ann-3",
-      "title": "Community Clean-Up & Environmental Greening Initiative",
-      "description": "In partnership with local authorities, RKF members and youth carried out monthly community service in Rusizi town, demonstrating environmental stewardship and civic pride.",
-      "image": "/assets/aistudio/New_Recording_2_2317054a.jpeg",
-      "publicationDate": "2026-02-28",
-      "category": "Completed Activities",
-      "published": true
-    },
     {
       "id": "ann-4",
       "title": "Quarterly Parents & Caregivers Meeting",
