@@ -171,6 +171,47 @@ function upsertCanonicalLink(url: string): void {
   link.setAttribute('href', url);
 }
 
+const ROUTE_IMAGE_GALLERY = [
+  `${SITE_BASE_URL}/assets/aistudio/New_Recording_69_2dab5d6c.jpeg`,
+  `${SITE_BASE_URL}/assets/aistudio/New_Recording_35_583fbbcd.jpeg`,
+  `${SITE_BASE_URL}/assets/aistudio/New_Recording_14_17ffd186.jpeg`,
+  `${SITE_BASE_URL}/assets/aistudio/New_Recording_47_6a9ce814.jpeg`,
+  `${SITE_BASE_URL}/assets/aistudio/New_Recording_78_59ee1a8e.jpeg`,
+  `${SITE_BASE_URL}/logo.png`,
+];
+
+function upsertRouteWebPageJsonLd(route: RouteSeoMeta, canonicalUrl: string, primaryImage: string): void {
+  if (typeof document === 'undefined') return;
+  const scriptId = 'rkf-route-webpage-jsonld';
+  let script = document.getElementById(scriptId) as HTMLScriptElement | null;
+  if (!script) {
+    script = document.createElement('script');
+    script.id = scriptId;
+    script.type = 'application/ld+json';
+    document.head.appendChild(script);
+  }
+
+  const images = [primaryImage, ...ROUTE_IMAGE_GALLERY.filter((img) => img !== primaryImage)];
+
+  script.textContent = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: route.title,
+    description: route.description,
+    url: canonicalUrl,
+    primaryImageOfPage: {
+      '@type': 'ImageObject',
+      url: primaryImage,
+    },
+    image: images,
+    isPartOf: {
+      '@type': 'WebSite',
+      name: 'Rusizi Kids Foundation',
+      url: `${SITE_BASE_URL}/`,
+    },
+  });
+}
+
 export function applyRouteSeoMetadata(rawPathname: string): RouteSeoMeta {
   const route = resolveRoute(rawPathname);
   if (typeof document === 'undefined') return route;
@@ -188,6 +229,7 @@ export function applyRouteSeoMetadata(rawPathname: string): RouteSeoMeta {
   upsertMetaTag('name', 'twitter:description', route.description);
   upsertMetaTag('name', 'twitter:image', ogImage);
   upsertCanonicalLink(canonicalUrl);
+  upsertRouteWebPageJsonLd(route, canonicalUrl, ogImage);
 
   return route;
 }

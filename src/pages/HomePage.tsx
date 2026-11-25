@@ -197,13 +197,18 @@ export const HomePage: React.FC = () => {
                 <span>Edit Programs</span>
               </button>
             )}
-            <button
-              onClick={() => setActivePage('programs')}
+            <a
+              href="/programs"
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                e.preventDefault();
+                setActivePage('programs');
+              }}
               className="inline-flex items-center gap-1.5 text-xs font-extrabold uppercase tracking-wider text-[#F2C14E] hover:text-[#F9F5F0] transition-colors whitespace-nowrap"
             >
               <span>All Programs ({programs.length})</span>
               <ArrowRight className="w-4 h-4" />
-            </button>
+            </a>
           </div>
         </div>
 
@@ -315,13 +320,18 @@ export const HomePage: React.FC = () => {
               </div>
 
               <div className="pt-2 flex flex-wrap items-center gap-5">
-                <button
-                  onClick={() => setActivePage('about')}
+                <a
+                  href="/about"
+                  onClick={(e) => {
+                    if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                    e.preventDefault();
+                    setActivePage('about');
+                  }}
                   className="px-6 py-3 bg-gradient-to-r from-[#D9A62E] to-[#F2C14E] hover:brightness-110 text-[#120B08] text-xs font-extrabold uppercase tracking-wider rounded-lg transition-all inline-flex items-center gap-2 shadow-[0_0_18px_rgba(217,166,46,0.25)]"
                 >
                   <span>Read Our Full Story</span>
                   <ArrowRight className="w-3.5 h-3.5" />
-                </button>
+                </a>
                 <div className="flex items-center gap-2 text-xs text-[#D6C7B8] font-medium">
                   <ShieldCheck className="w-4 h-4 text-[#F2C14E]" />
                   <span>Zero-tuition child safeguarding charter</span>
@@ -761,18 +771,28 @@ export const HomePage: React.FC = () => {
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-3.5 shrink-0">
-            <button
-              onClick={() => setActivePage('join')}
+            <a
+              href="/join"
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                e.preventDefault();
+                setActivePage('join');
+              }}
               className="px-6 py-3.5 bg-gradient-to-r from-[#D9A62E] to-[#F2C14E] hover:brightness-110 text-[#120B08] font-extrabold text-xs uppercase tracking-wider rounded-lg shadow-[0_0_24px_rgba(217,166,46,0.3)] transition-all whitespace-nowrap"
             >
               Register Child or Join (18+)
-            </button>
-            <button
-              onClick={() => setActivePage('donors')}
+            </a>
+            <a
+              href="/donate"
+              onClick={(e) => {
+                if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || e.button !== 0) return;
+                e.preventDefault();
+                setActivePage('donors');
+              }}
               className="px-6 py-3.5 bg-[#281912] hover:bg-[#362218] text-[#F2C14E] border border-[#D9A62E]/60 font-bold text-xs uppercase tracking-wider rounded-lg transition-colors whitespace-nowrap"
             >
               Support Our Children
-            </button>
+            </a>
           </div>
         </div>
       </section>

@@ -189,9 +189,10 @@ export const Navbar: React.FC = () => {
             {navLinks.map((link) => {
               const isActive = activePage === link.id;
               return (
-                <button
+                <a
                   key={link.id}
-                  onClick={() => handleNavClick(link.id)}
+                  href={getPathForPage(link.id)}
+                  onClick={(e) => handleLinkClick(e, link.id)}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
                     isActive
                       ? 'bg-[#281912] text-[#F2C14E] border border-[#D9A62E]/45'
@@ -202,23 +203,25 @@ export const Navbar: React.FC = () => {
                   <ChevronRight
                     className={`w-4 h-4 ${isActive ? 'text-[#F2C14E]' : 'text-[#A89585]'}`}
                   />
-                </button>
+                </a>
               );
             })}
 
             <div className="pt-4 mt-3 border-t border-[#D9A62E]/20 flex flex-col gap-2.5">
-              <button
-                onClick={() => handleNavClick('join')}
-                className="w-full text-center py-2.5 text-sm font-extrabold uppercase tracking-wider text-[#120B08] bg-gradient-to-r from-[#D9A62E] to-[#F2C14E] rounded-lg transition-all shadow-sm"
+              <a
+                href="/join"
+                onClick={(e) => handleLinkClick(e, 'join')}
+                className="w-full text-center py-2.5 text-sm font-extrabold uppercase tracking-wider text-[#120B08] bg-gradient-to-r from-[#D9A62E] to-[#F2C14E] rounded-lg transition-all shadow-sm block"
               >
                 Join RKF (Child & Adult Registration)
-              </button>
-              <button
-                onClick={() => handleNavClick('donors')}
-                className="w-full text-center py-2.5 text-sm font-bold uppercase tracking-wider text-[#F2C14E] bg-[#1D120D] border border-[#D9A62E]/50 rounded-lg hover:bg-[#281912] transition-colors"
+              </a>
+              <a
+                href="/donate"
+                onClick={(e) => handleLinkClick(e, 'donors')}
+                className="w-full text-center py-2.5 text-sm font-bold uppercase tracking-wider text-[#F2C14E] bg-[#1D120D] border border-[#D9A62E]/50 rounded-lg hover:bg-[#281912] transition-colors block"
               >
                 Support Us · Donors & Partners
-              </button>
+              </a>
 
               {isAdminAuthenticated && (
                 <div className="pt-2 flex items-center justify-between text-xs text-[#D6C7B8]">
