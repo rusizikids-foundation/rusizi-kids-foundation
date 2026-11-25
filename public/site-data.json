@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "publishedAt": "2026-11-25T18:28:50.723Z",
+  "publishedAt": "2026-11-25T18:28:55.853Z",
   "settings": {
     "foundationName": "Rusizi Kids Foundation",
     "abbreviation": "RKF",
@@ -391,18 +391,7 @@
     }
   ],
   "children": [],
-  "announcements": [
-    {
-      "id": "ann-4",
-      "title": "Quarterly Parents & Caregivers Meeting",
-      "description": "Reviewing our children’s academic progress, artistic milestones, and safeguarding measures. We invite all parents and guardians to discuss the upcoming semester calendar.",
-      "image": "/assets/aistudio/New_Recording_47_6a9ce814.jpeg",
-      "publicationDate": "2026-02-15",
-      "category": "Parent Announcements",
-      "eventDate": "2026-03-29",
-      "published": true
-    }
-  ],
+  "announcements": [],
   "donors": [],
   "partners": [],
   "gallery": [
